@@ -242,3 +242,6 @@ class VM:
         if self._implicitIncI:
             self._incI()
         self._implicitIncI = True
+
+    def isValidCmd(self, cmd):
+        return cmd in self.__exec
