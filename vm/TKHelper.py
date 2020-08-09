@@ -14,7 +14,7 @@ class ScrollFrame(tk.Frame):
 
         self.vsb.pack(side="right", fill="y")                                       #pack scrollbar to right of self
         self.canvas.pack(side="left", fill="both", expand=True)                     #pack canvas to left of self and expand to fil
-        self.canvas_window = self.canvas.create_window((4,4), window=self.viewPort, anchor="nw",            #add view port frame to canvas
+        self.canvas_window = self.canvas.create_window((0,0), window=self.viewPort, anchor="nw",            #add view port frame to canvas
                                   tags="self.viewPort")
 
         self.viewPort.bind("<Configure>", self.onFrameConfigure)                       #bind an event whenever the size of the viewPort frame changes.
@@ -28,5 +28,8 @@ class ScrollFrame(tk.Frame):
 
     def onCanvasConfigure(self, event):
         '''Reset the canvas window to encompass inner frame when required'''
-        canvas_width = event.width
+        canvas_width = self.viewPort.bbox("all")[2] #event.width
         self.canvas.itemconfig(self.canvas_window, width = canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
+        self.canvas.config(width=canvas_width)
+
+# TODO implement scrolling from canvas (not only scrollbar) - https://stackoverflow.com/questions/17355902/tkinter-binding-mousewheel-to-scrollbar

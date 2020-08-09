@@ -16,7 +16,7 @@
           <object class="ttk.Labelframe" id="frame_code">
             <property name="height">200</property>
             <property name="text" translatable="yes">Código</property>
-            <property name="width">400</property>
+            <property name="width">500</property>
             <layout manager="grid">
               <property name="padx">20</property>
               <property name="pady">20</property>
@@ -34,6 +34,7 @@
               <property name="pady">20</property>
               <property name="propagate">True</property>
               <property name="row">1</property>
+              <property type="row" id="1" name="pad">0</property>
             </layout>
             <child>
               <object class="tk.Text" id="console_output">
@@ -42,7 +43,7 @@
                 <property name="height">10</property>
                 <property name="insertunfocussed">none</property>
                 <property name="relief">sunken</property>
-                <property name="setgrid">false</property>
+                <property name="setgrid">true</property>
                 <property name="state">disabled</property>
                 <property name="takefocus">true</property>
                 <property name="undo">true</property>
@@ -72,13 +73,13 @@
           <object class="ttk.Labelframe" id="frame_mem">
             <property name="height">200</property>
             <property name="text" translatable="yes">Pilha</property>
-            <property name="width">200</property>
             <layout manager="grid">
               <property name="column">1</property>
               <property name="padx">20</property>
               <property name="pady">20</property>
               <property name="propagate">True</property>
               <property name="row">0</property>
+              <property type="col" id="1" name="pad">0</property>
             </layout>
           </object>
         </child>
@@ -88,8 +89,11 @@
             <property name="width">200</property>
             <layout manager="grid">
               <property name="column">1</property>
+              <property name="padx">40</property>
               <property name="propagate">True</property>
               <property name="row">1</property>
+              <property type="col" id="1" name="pad">0</property>
+              <property type="row" id="1" name="pad">0</property>
             </layout>
             <child>
               <object class="ttk.Button" id="button_import">
@@ -105,6 +109,7 @@
             </child>
             <child>
               <object class="ttk.Button" id="button_run">
+                <property name="command">cb_run</property>
                 <property name="text" translatable="yes">Executar</property>
                 <layout manager="pack">
                   <property name="pady">10</property>

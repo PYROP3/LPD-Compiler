@@ -1,5 +1,5 @@
 class VM:
-    def __init__(self):
+    def __init__(self, interface):
         self._registers = { 'i':0, 's':-1 }
         self._stack = []
         self._prog = []
@@ -35,7 +35,9 @@ class VM:
             'RETURN': self._RETURN
         }
         self._implicitIncI = True
+        self._implicitBreak = True
         self._debugMode = False
+        self._ioHandler = interface
         
     def _incI(self):
         self._registers['i'] += 1
@@ -55,6 +57,22 @@ class VM:
     def _getS(self):
         return self._registers['s']
     
+    def _onMemoryUpdate(self):
+        self._ioHandler.updateMemoryView(self._stack, self._getS())
+
+    def _onProgramStep(self):
+        self._ioHandler.updateProgramHighlight(self._getI())
+
+    def _delegateInterface(self):
+        self._onMemoryUpdate()
+        self._onProgramStep()
+    
+    def _delegateStdIn(self):
+        return self._ioHandler.emulatorStdin()
+
+    def _delegateStdOut(self, text):
+        self._ioHandler.emulatorStdout(text)
+
     def _parseInt(self, x):
         return int(x)
     
@@ -62,7 +80,7 @@ class VM:
         a, b = x.split(',')
         return int(a), int(b)
     
-    def _parseLabel(self, x): # TODO implement this mess
+    def _parseLabel(self, x):
         for idx, line in enumerate(self._prog):
             if x == line[0]:
                 return idx
@@ -182,10 +200,10 @@ class VM:
     
     def _RD(self, x):
         self._incS()
-        self._push(int(input(">"))) #TODO add input logic
+        self._push(self._delegateStdIn())
         
     def _PRN(self, x):
-        print(self._pop()) #TODO add output logic
+        self._delegateStdOut(self._pop())
         self._decS()
         
     def _ALLOC(self, x):
@@ -220,11 +238,21 @@ class VM:
         
     def loadProgram(self, program):
         self._prog = program
+        self._registers['i'] = 0
+
+    def prime(self):
+        self._delegateInterface()
+        self._state = True
         
     def execute(self):
         self._state = True
         while self._state:
+            if self._ioHandler.isInstructionBreak(self._getI()) and self._implicitBreak:
+                self._implicitBreak = False
+                break
             self.step()
+            self._implicitBreak = True
+            
             
     def step(self):
         if not self._state:
@@ -242,6 +270,9 @@ class VM:
         if self._implicitIncI:
             self._incI()
         self._implicitIncI = True
+
+        # Update GUI
+        self._delegateInterface()
 
     def isValidCmd(self, cmd):
         return cmd in self.__exec
