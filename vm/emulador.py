@@ -206,7 +206,7 @@ class VmApp:
             for widget in self.memScrollFrame.viewPort.grid_slaves(row=self.__prevS):
                 widget.config(bg=colorScheme["highlightBg"]) # TODO scroll to highlighted entry
 
-        self.memScrollFrame.pack(side="top", fill="y", expand=True)
+        self.memScrollFrame.pack(side="top", fill="y", expand=True) # FIXME stack view width does not fit big numbersv
 
     def initMemoryView(self):
         tableRelief = "solid"
@@ -214,7 +214,7 @@ class VmApp:
         self.memScrollFrame = TKHelper.ScrollFrame(self.emulatorMemoryView)
         for idx, key in enumerate(["Posição", "Valor"]):
             Label(self.memScrollFrame.viewPort, text=key, font=('bold'), relief=tableRelief).grid(row=0, column=idx, sticky="snew")
-        #self.memScrollFrame.viewPort.pack(side="top", fill="y") # FIXME stack view width does not fit big numbers
+        self.memScrollFrame.pack(side="top", fill="y")
 
     def emulatorStdout(self, text):
         self.console_write("Saída: " + str(text))
