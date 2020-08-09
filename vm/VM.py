@@ -1,3 +1,5 @@
+import threading
+
 class VM:
     def __init__(self, interface):
         self._registers = { 'i':0, 's':-1 }
@@ -38,6 +40,18 @@ class VM:
         self._implicitBreak = True
         self._debugMode = False
         self._ioHandler = interface
+        self._stdLock = threading.Lock()
+        self._stdLock.acquire()
+        self._stdInBuffer = None
+
+    def _reset(self, resetRegisters=True, resetStack=True, resetProgram=False):
+        if resetRegisters:
+            self._registers = { 'i':0, 's':-1 }
+        if resetStack:
+            self._stack = []
+        if resetProgram:
+            self._prog = []
+        self._delegateInterface()
         
     def _incI(self):
         self._registers['i'] += 1
@@ -68,10 +82,18 @@ class VM:
         self._onProgramStep()
     
     def _delegateStdIn(self):
-        return self._ioHandler.emulatorStdin()
+        self._ioHandler.emulatorStdin()
+        self._stdLock.acquire()
+        return self._stdInBuffer
 
     def _delegateStdOut(self, text):
         self._ioHandler.emulatorStdout(text)
+
+    def _shutdown(self):
+        try:
+            self._stdLock.release()
+        except RuntimeError:
+            pass
 
     def _parseInt(self, x):
         return int(x)
@@ -181,6 +203,7 @@ class VM:
         
     def _HLT(self, x):
         self._state = False
+        self._ioHandler.cb_onHalt()
         
     def _STR(self, x):
         self._stack[self._parseInt(x)] = self._pop()
@@ -229,6 +252,10 @@ class VM:
         self._registers['i'] = self._pop()
         self._decS()
         self._implicitIncI = False
+
+    def _stdinReply(self, value):
+        self._stdInBuffer = value
+        self._stdLock.release()
         
     def toStackString(self):
         return "["+",".join([str(item) for item in self._stack[:self._registers['s']+1]])+"]"
@@ -248,15 +275,15 @@ class VM:
         self._state = True
         while self._state:
             if self._ioHandler.isInstructionBreak(self._getI()) and self._implicitBreak:
+                self._ioHandler.cb_onBreakpoint()
                 self._implicitBreak = False
                 break
             self.step()
             self._implicitBreak = True
             
-            
-    def step(self):
+    def step(self, cb=None):
         if not self._state:
-            return 0
+            return False
         cmd = self._prog[self._getI()]
         aux = cmd[2] if len(cmd) > 2 else None
         args = cmd[1] if len(cmd) > 1 else None
@@ -273,6 +300,9 @@ class VM:
 
         # Update GUI
         self._delegateInterface()
+
+        if cb:
+            cb()
 
     def isValidCmd(self, cmd):
         return cmd in self.__exec

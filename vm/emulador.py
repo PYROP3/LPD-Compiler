@@ -1,12 +1,14 @@
+#!/usr/bin/env python3
+
 import os
 import pygubu
 import VM
 import TKHelper
 from tkinter import filedialog
-from tkinter import *
-
-# TODO (improv) add reset button (i=0, stack=[], s=-1)
-# TODO (improv) prevent window resizing
+from tkinter import * # TODO remove wildcard import
+import threading
+import _thread
+import sys
 
 PROJECT_PATH = os.path.dirname(__file__)
 PROJECT_UI = os.path.join(PROJECT_PATH, "emulador.ui")
@@ -29,16 +31,70 @@ class VmApp:
         builder.add_from_file(PROJECT_UI)
         self.mainwindow = builder.get_object('toplevel')
         builder.connect_callbacks(self)
-        self.console = builder.get_object("console_output") # TODO implement console auto scrolling when text is inserted
+        self.console = builder.get_object("console_output")
         self.emulatorMemoryView = builder.get_object("frame_mem")
         self.__prevS = None
         self.__prevI = None
+        self._prevStack = []
+
+        # Graceful exit
+        self.mainwindow.protocol("WM_DELETE_WINDOW", self.shutdown)
+        
+        # Prevent resize
+        self.mainwindow.resizable(False, False) # TODO add dynamic resizing
+
+        self._disableControls(bImport=False)
 
         self.writeProgramField(self.builder.get_object("frame_code"), [])
-        self.updateMemoryView([], -1)
+        self.initMemoryView()
+
+        # Prepare stdin
+        self.Stdin_buffer_lock = threading.Lock()
+        self.Stdin_buffer_lock.acquire() # Lock objects are released by default
+        self.Stdin_request_lock = threading.Lock()
+        self.Stdin_request_lock.acquire() # Lock objects are released by default
+        self.GUI_Stdin = self.builder.get_object("console_input")
+        self.Stdin_buffer = StringVar()
+        self.GUI_Stdin.config(textvariable=self.Stdin_buffer)
+        self.GUI_Stdin.bind("<FocusIn>", lambda event: self._bindStdinKeys())
+        self.GUI_Stdin.bind("<FocusOut>", lambda event: self._uhbindStdinKeys())
 
         self._vm = VM.VM(self)
         self._vm.prime()
+
+    def shutdown(self):
+        self._vm._shutdown()
+        try:
+            self.Stdin_buffer_lock.release()
+        except RuntimeError:
+            pass
+        try:
+            self.Stdin_request_lock.release()
+        except RuntimeError:
+            pass
+        os._exit(0)
+
+    def update(self):
+        pass
+        #self.mainwindow.update()
+
+    def _bindStdinKeys(self):
+        self.GUI_Stdin.bind("<Return>", lambda event: self._onStdin())
+        self.GUI_Stdin.bind("<Escape>", lambda event: self.mainwindow.focus_set())
+
+    def _uhbindStdinKeys(self):
+        self.GUI_Stdin.unbind("<Return>")
+        self.GUI_Stdin.unbind("<Escape>")
+
+    def _onStdin(self):
+        # Should only be called if stdin is being requested
+        if not self.Stdin_request_lock.acquire(blocking=False):
+            return
+        try:
+            # Inform there is data available
+            self.Stdin_buffer_lock.release()
+        except RuntimeError:
+            pass
 
     def parseLine(self, tokens):
         aux = [None] + tokens if self._vm.isValidCmd(tokens[0]) else tokens + [None] 
@@ -49,28 +105,47 @@ class VmApp:
 
     def cb_import(self, *args):
         file_path = filedialog.askopenfilename()
-        print("Usuario escolheu [{}]".format(file_path))
-        prog = importProgramFile(file_path)
-        self._vm.loadProgram([line.split() for line in prog])
-        self.writeProgramField(self.builder.get_object("frame_code"), prog, highlight=0)
-        print("Done!")
+        if (file_path == ''):
+            return
+        print("Loading [{}]".format(file_path))
+        try:
+            prog = importProgramFile(file_path)
+            self._vm.loadProgram([line.split() for line in prog])
+            self.writeProgramField(self.builder.get_object("frame_code"), prog, highlight=0)
+            self._enableControls()
+            print("Done!")
+        except FileNotFoundError:
+            pass 
+        except TypeError:
+            pass
 
     def cb_run(self, *args):
-        self._vm.execute()
+        # Disable run and step buttons until breakpoint
+        self._disableControls()
+        threading.Thread(target=self._vm.execute, args=()).start()
 
     def cb_step(self, *args):
-        self._vm.step()
+        # Disable run and step buttons until step finishes
+        self._disableControls()
+        threading.Thread(target=self._vm.step, args=([self._enableControls])).start()
+
+    def cb_reset(self, *args):
+        self._vm._reset()
+        self.initMemoryView()
+        self.console_write("*** VM RESET ***")
+        self._enableControls()
 
     def console_write(self, text, end='\n'):
         self.console.config(state="normal")
         self.console.insert(END, text + end)
         self.console.config(state="disabled")
+        self.console.see(END)
 
     def clearFrame(self, frame):
         for widget in frame.winfo_children():
             widget.destroy()
 
-    def writeProgramField(self, programWidget, program, highlight=None): # TODO (improv) prevent empty frame when loading prog
+    def writeProgramField(self, programWidget, program, highlight=None): # TODO (improv) prevent small/empty frame when loading prog
         self.clearFrame(programWidget)
         self.breakpoints = []
         self.programScrollFrame = TKHelper.ScrollFrame(programWidget)
@@ -107,12 +182,18 @@ class VmApp:
         self.__prevI = instrRegister+1
 
         for widget in self.programScrollFrame.viewPort.grid_slaves(row=self.__prevI):
-            widget.config(bg=colorScheme["highlightBg"])
+            widget.config(bg=colorScheme["highlightBg"]) # TODO scroll to highlighted entry
 
-    # TODO (improv) use this function when stack does not grow
-    def updateMemoryField(self, stackRegister):
-        if stackRegister < 0:
-            return
+    def updateMemoryView(self, newStack, stackRegister):
+        tableRelief = "solid"
+        for idx, contents in enumerate(newStack):
+            try:
+                if contents != self._prevStack[idx]:
+                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=contents)
+            except IndexError:
+                Label(self.memScrollFrame.viewPort, text=str(idx), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=0, sticky="snew")
+                Label(self.memScrollFrame.viewPort, text=str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
+        self._prevStack = newStack[:]
 
         if self.__prevS:
             if self.__prevS == stackRegister+1:
@@ -121,40 +202,84 @@ class VmApp:
                 widget.config(bg=colorScheme["defaultBg"])
         
         self.__prevS = stackRegister+1
-
-        for widget in self.memScrollFrame.viewPort.grid_slaves(row=self.__prevS):
-            widget.config(bg=colorScheme["highlightBg"])
-
-    def updateMemoryView(self, memory, stackRegister):
-        self.clearFrame(self.emulatorMemoryView)
-        self.memScrollFrame = TKHelper.ScrollFrame(self.emulatorMemoryView)
-        tableRelief = "solid"
-
-        for idx, key in enumerate(["Posição", "Valor"]):
-            Label(self.memScrollFrame.viewPort, text=key, font=('bold'), relief=tableRelief).grid(row=0, column=idx, sticky="snew")
-
-        for idx, val in enumerate(memory):
-            _bg = colorScheme["highlightBg" if idx == stackRegister else "defaultBg"]
-            Label(self.memScrollFrame.viewPort, text=str(idx), relief=tableRelief, bg=_bg).grid(row=idx+1, column=0, sticky="snew")
-            Label(self.memScrollFrame.viewPort, text=str(val), relief=tableRelief, bg=_bg).grid(row=idx+1, column=1, sticky="snew")
+        if self.__prevS > 0:
+            for widget in self.memScrollFrame.viewPort.grid_slaves(row=self.__prevS):
+                widget.config(bg=colorScheme["highlightBg"]) # TODO scroll to highlighted entry
 
         self.memScrollFrame.pack(side="top", fill="y", expand=True)
-        
-        self.__prevS = stackRegister+1
+
+    def initMemoryView(self):
+        tableRelief = "solid"
+        self.clearFrame(self.emulatorMemoryView)
+        self.memScrollFrame = TKHelper.ScrollFrame(self.emulatorMemoryView)
+        for idx, key in enumerate(["Posição", "Valor"]):
+            Label(self.memScrollFrame.viewPort, text=key, font=('bold'), relief=tableRelief).grid(row=0, column=idx, sticky="snew")
+        #self.memScrollFrame.viewPort.pack(side="top", fill="y") # FIXME stack view width does not fit big numbers
 
     def emulatorStdout(self, text):
         self.console_write("Saída: " + str(text))
 
     def emulatorStdin(self):
-        # TODO implement this mess
-        # Should block until user writes content and presses enter
-        # Optionally loop if input is invalid
-        return 6 # Mock
+        # Enable text field 
+        self.GUI_Stdin.config(state="normal", cursor="xterm")
+        threading.Thread(target=self.threadStdin).start()
+
+    def threadStdin(self):
+        while True:
+            # Allow input (release lock)
+            try:
+                self.Stdin_request_lock.release()
+            except RuntimeError: # FIXME this should not be necessary
+                pass
+            # Should block until user writes content and presses enter
+            self.Stdin_buffer_lock.acquire()
+            # Get int value
+            try:
+                _aux = int(self.Stdin_buffer.get())
+                self.console_write("Entrada: " + str(_aux))
+                self.GUI_Stdin.delete(0, END) # Clear buffer
+                self.GUI_Stdin.config(state="disabled", cursor="X_cursor")
+                self._vm._stdinReply(_aux)
+            except ValueError:
+                # Invalid string, maybe alert user? - TODO change field to red, until regains focus
+                pass
 
     def isInstructionBreak(self, instruction):
         return self.breakpoints[instruction].get()
-        #return self.programScrollFrame.viewPort.grid_slaves(row=instruction+1, column=PROGRAM_HEADERS.index("Breakpoint"))[0].var.get()
 
+    def cb_onBreakpoint(self):
+        self._enableControls()
+
+    def cb_onHalt(self):
+        self._setControls(bRun=False, bDebug=False)
+
+    def _enableControls(self, bImport=True, bRun=True, bDebug=True, bReset=True):
+        # Re-enable import, run and step buttons
+        if bImport:
+            self.builder.get_object("button_import").config(state="normal")
+        if bRun:
+            self.builder.get_object("button_run").config(state="normal")
+        if bDebug:
+            self.builder.get_object("button_debug").config(state="normal")
+        if bReset:
+            self.builder.get_object("button_reset").config(state="normal")
+
+    def _disableControls(self, bImport=True, bRun=True, bDebug=True, bReset=True):
+        # Disable import, run and step buttons
+        if bImport:
+            self.builder.get_object("button_import").config(state="disabled")
+        if bRun:
+            self.builder.get_object("button_run").config(state="disabled")
+        if bDebug:
+            self.builder.get_object("button_debug").config(state="disabled")
+        if bReset:
+            self.builder.get_object("button_reset").config(state="disabled")
+
+    def _setControls(self, bImport=True, bRun=True, bDebug=True, bReset=True):
+        _d = {"import":bImport, "run":bRun, "debug":bDebug, "reset":bReset}
+        for obj in _d:
+            self.builder.get_object("button_"+obj).config(state = "normal" if _d[obj] else "disabled")
+        
 if __name__ == '__main__':
     app = VmApp()
     app.run()

@@ -55,7 +55,6 @@ class ScrollFrame(tk.Frame):
     def onCanvasConfigure(self, event):
         '''Reset the canvas window to encompass inner frame when required'''
         canvas_width = self.viewPort.bbox("all")[2] #event.width
-        self.canvas.itemconfig(self.canvas_window, width = canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
+        #print(self.viewPort.bbox("all"))
+        self.canvas.itemconfig(self.canvas_window, width=canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
         self.canvas.config(width=canvas_width)
-
-# TODO (improv) limit scrolling when canvas height fits inside view
