@@ -20,7 +20,33 @@ class ScrollFrame(tk.Frame):
         self.viewPort.bind("<Configure>", self.onFrameConfigure)                       #bind an event whenever the size of the viewPort frame changes.
         self.canvas.bind("<Configure>", self.onCanvasConfigure)                       #bind an event whenever the size of the viewPort frame changes.
 
+        # Bind entering/leaving to bind scroll wheel events
+        self.bind('<Enter>', self.bindScrolling)
+        self.bind('<Leave>', self.unbindScrolling)
+
         self.onFrameConfigure(None)                                                 #perform an initial stretch on render, otherwise the scroll region has a tiny border until the first resize
+
+    def bindScrolling(self, event):
+        # if x11
+        self.canvas.bind_all("<Button-4>", lambda event: self.resolveScrollEvent(event, k=1))
+        self.canvas.bind_all("<Button-5>", lambda event: self.resolveScrollEvent(event, k=-1))
+        # if win/osx
+        self.canvas.bind_all("<MouseWheel>", self.resolveScrollEvent)
+
+    def resolveScrollEvent(self, event, k=1):
+        if self.canvas.bbox("all")[3] <= self.winfo_height(): # Fits in view, no need to scroll
+            return
+        self.canvas.yview_scroll(k * self.translateScrollEvent(event), "units")
+        
+    def unbindScrolling(self, event):
+        # if x11
+        self.canvas.unbind_all("<Button-4>")
+        self.canvas.unbind_all("<Button-5>")
+        # if win/osx
+        self.canvas.unbind_all("<MouseWheel>")
+
+    def translateScrollEvent(self, event): # TODO (improv) choose correct method using system os
+        return int(-1*(event.delta/120)) if event.delta else -1
 
     def onFrameConfigure(self, event):                                              
         '''Reset the scroll region to encompass the inner frame'''
@@ -32,4 +58,4 @@ class ScrollFrame(tk.Frame):
         self.canvas.itemconfig(self.canvas_window, width = canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
         self.canvas.config(width=canvas_width)
 
-# TODO implement scrolling from canvas (not only scrollbar) - https://stackoverflow.com/questions/17355902/tkinter-binding-mousewheel-to-scrollbar
+# TODO (improv) limit scrolling when canvas height fits inside view

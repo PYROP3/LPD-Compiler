@@ -5,10 +5,13 @@ import TKHelper
 from tkinter import filedialog
 from tkinter import *
 
+# TODO (improv) add reset button (i=0, stack=[], s=-1)
+# TODO (improv) prevent window resizing
+
 PROJECT_PATH = os.path.dirname(__file__)
 PROJECT_UI = os.path.join(PROJECT_PATH, "emulador.ui")
 
-colorScheme = {
+colorScheme = { # TODO (improv) choose better color scheme
     "highlightBg": "royal blue",
     "defaultBg": "light grey"
 }
@@ -26,7 +29,7 @@ class VmApp:
         builder.add_from_file(PROJECT_UI)
         self.mainwindow = builder.get_object('toplevel')
         builder.connect_callbacks(self)
-        self.console = builder.get_object("console_output")
+        self.console = builder.get_object("console_output") # TODO implement console auto scrolling when text is inserted
         self.emulatorMemoryView = builder.get_object("frame_mem")
         self.__prevS = None
         self.__prevI = None
@@ -67,7 +70,7 @@ class VmApp:
         for widget in frame.winfo_children():
             widget.destroy()
 
-    def writeProgramField(self, programWidget, program, highlight=None):
+    def writeProgramField(self, programWidget, program, highlight=None): # TODO (improv) prevent empty frame when loading prog
         self.clearFrame(programWidget)
         self.breakpoints = []
         self.programScrollFrame = TKHelper.ScrollFrame(programWidget)
@@ -106,7 +109,7 @@ class VmApp:
         for widget in self.programScrollFrame.viewPort.grid_slaves(row=self.__prevI):
             widget.config(bg=colorScheme["highlightBg"])
 
-    # TODO use this function when stack does not grow
+    # TODO (improv) use this function when stack does not grow
     def updateMemoryField(self, stackRegister):
         if stackRegister < 0:
             return
