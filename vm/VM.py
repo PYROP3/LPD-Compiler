@@ -282,8 +282,9 @@ class VM:
             self._implicitBreak = True
             
     def step(self, cb=None):
-        if not self._state:
-            return False
+        #if not self._state:
+         #   return False
+        self._state = True
         cmd = self._prog[self._getI()]
         aux = cmd[2] if len(cmd) > 2 else None
         args = cmd[1] if len(cmd) > 1 else None

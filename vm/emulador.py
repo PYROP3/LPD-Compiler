@@ -5,7 +5,7 @@ import pygubu
 import VM
 import TKHelper
 from tkinter import filedialog
-from tkinter import * # TODO remove wildcard import
+from tkinter import Tk, StringVar, END, IntVar, Label, Checkbutton
 import threading
 import _thread
 import sys
@@ -19,6 +19,7 @@ colorScheme = { # TODO (improv) choose better color scheme
 }
 
 PROGRAM_HEADERS = ["Breakpoint", "Linha", "Label", "Comando", "Parâmetros"]
+
 
 def importProgramFile(file_path):
     fd = open(file_path, "r")
@@ -41,7 +42,7 @@ class VmApp:
         self.mainwindow.protocol("WM_DELETE_WINDOW", self.shutdown)
         
         # Prevent resize
-        self.mainwindow.resizable(False, False) # TODO add dynamic resizing
+        #self.mainwindow.resizable(False, False) # TODO add dynamic resizing
 
         self._disableControls(bImport=False)
 
@@ -128,6 +129,8 @@ class VmApp:
         # Disable run and step buttons until step finishes
         self._disableControls()
         threading.Thread(target=self._vm.step, args=([self._enableControls])).start()
+        self.programScrollFrame.jump(line=self.__prevI)
+        self.memScrollFrame.jump(line = self.__prevS)
 
     def cb_reset(self, *args):
         self._vm._reset()
@@ -182,17 +185,18 @@ class VmApp:
         self.__prevI = instrRegister+1
 
         for widget in self.programScrollFrame.viewPort.grid_slaves(row=self.__prevI):
-            widget.config(bg=colorScheme["highlightBg"]) # TODO scroll to highlighted entry
+            widget.config(bg=colorScheme["highlightBg"])
+            
 
     def updateMemoryView(self, newStack, stackRegister):
         tableRelief = "solid"
         for idx, contents in enumerate(newStack):
             try:
                 if contents != self._prevStack[idx]:
-                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=contents)
+                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=str(f'{contents:.2e}') if  contents > 999999 else str(contents))
             except IndexError:
                 Label(self.memScrollFrame.viewPort, text=str(idx), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=0, sticky="snew")
-                Label(self.memScrollFrame.viewPort, text=str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
+                Label(self.memScrollFrame.viewPort,text=str(f'{contents:.2e}') if  contents > 999999 else str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
         self._prevStack = newStack[:]
 
         if self.__prevS:
@@ -204,9 +208,9 @@ class VmApp:
         self.__prevS = stackRegister+1
         if self.__prevS > 0:
             for widget in self.memScrollFrame.viewPort.grid_slaves(row=self.__prevS):
-                widget.config(bg=colorScheme["highlightBg"]) # TODO scroll to highlighted entry
+                widget.config(bg=colorScheme["highlightBg"]) # FIXME scroll to highlighted entry
 
-        self.memScrollFrame.pack(side="top", fill="y", expand=True) # FIXME stack view width does not fit big numbersv
+        self.memScrollFrame.pack(side="top", fill="y", expand=True)
 
     def initMemoryView(self):
         tableRelief = "solid"
@@ -220,7 +224,9 @@ class VmApp:
         self.console_write("Saída: " + str(text))
 
     def emulatorStdin(self):
-        # Enable text field 
+        # Enable text field
+        self.programScrollFrame.jump(line=self.__prevI)
+        self.memScrollFrame.jump(line = self.__prevS)
         self.GUI_Stdin.config(state="normal", cursor="xterm")
         threading.Thread(target=self.threadStdin).start()
 
@@ -228,6 +234,7 @@ class VmApp:
         while True:
             # Allow input (release lock)
             try:
+                self.GUI_Stdin["style"] = "Green.TEntry"
                 self.Stdin_request_lock.release()
             except RuntimeError: # FIXME this should not be necessary
                 pass
@@ -241,6 +248,7 @@ class VmApp:
                 self.GUI_Stdin.config(state="disabled", cursor="X_cursor")
                 self._vm._stdinReply(_aux)
             except ValueError:
+                self.GUI_Stdin["style"] = "Red.TEntry"
                 # Invalid string, maybe alert user? - TODO change field to red, until regains focus
                 pass
 
@@ -251,6 +259,8 @@ class VmApp:
         self._enableControls()
 
     def cb_onHalt(self):
+        self.programScrollFrame.jump(line=self.__prevI)
+        self.memScrollFrame.jump(line = self.__prevS)
         self._setControls(bRun=False, bDebug=False)
 
     def _enableControls(self, bImport=True, bRun=True, bDebug=True, bReset=True):

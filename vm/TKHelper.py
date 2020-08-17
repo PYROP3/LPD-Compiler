@@ -6,6 +6,7 @@ import tkinter as tk
 class ScrollFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent) # create a frame (self)
+        self.currentLine = 0
 
         self.canvas = tk.Canvas(self, borderwidth=0, background="#ffffff")          #place canvas on self
         self.viewPort = tk.Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets 
@@ -44,6 +45,10 @@ class ScrollFrame(tk.Frame):
         self.canvas.unbind_all("<Button-5>")
         # if win/osx
         self.canvas.unbind_all("<MouseWheel>")
+
+    def jump(self, line):
+        self.canvas.yview_scroll(line - self.currentLine, "units")
+        self.currentLine = line
 
     def translateScrollEvent(self, event): # TODO (improv) choose correct method using system os
         return int(-1*(event.delta/120)) if event.delta else -1
