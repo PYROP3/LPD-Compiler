@@ -60,8 +60,8 @@
                 <property name="exportselection">true</property>
                 <property name="state">disabled</property>
                 <property name="validate">none</property>
-                <property name="width">50</property>
                 <layout manager="pack">
+                  <property name="fill">x</property>
                   <property name="propagate">True</property>
                   <property name="side">top</property>
                 </layout>
