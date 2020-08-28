@@ -5,7 +5,7 @@ import pygubu
 import VM
 import TKHelper
 from tkinter import filedialog
-from tkinter import Tk, StringVar, END, IntVar, Label, Checkbutton
+from tkinter import Tk, StringVar, END, IntVar, Label, Checkbutton, ttk
 import threading
 import _thread
 import sys
@@ -15,11 +15,14 @@ PROJECT_UI = os.path.join(PROJECT_PATH, "emulador.ui")
 
 colorScheme = { # TODO (improv) choose better color scheme
     "highlightBg": "royal blue",
-    "defaultBg": "light grey"
+    "defaultBg": "light grey",
+    "errorBg": "indian red",
+    "typingBc": "spring green",
+    "defaultEntryBc": "black",
+    "defaultEntryBg": "gray99"
 }
 
-PROGRAM_HEADERS = ["Breakpoint", "Linha", "Label", "Comando", "Parâmetros"]
-
+PROGRAM_HEADERS = [" Breakpoint ", " Linha ", " Label ", " Comando ", " Parâmetros "]
 
 def importProgramFile(file_path):
     fd = open(file_path, "r")
@@ -59,9 +62,21 @@ class VmApp:
         self.GUI_Stdin.config(textvariable=self.Stdin_buffer)
         self.GUI_Stdin.bind("<FocusIn>", lambda event: self._bindStdinKeys())
         self.GUI_Stdin.bind("<FocusOut>", lambda event: self._uhbindStdinKeys())
+        self.GUI_Stdin["style"] = "EntryStyle.TEntry"
 
         self._vm = VM.VM(self)
         self._vm.prime()
+
+        self.estyle = ttk.Style()
+        self.estyle.element_create("plain.field", "from", "clam")
+        self.estyle.layout("EntryStyle.TEntry",
+                        [('Entry.plain.field', {'children': [(
+                            'Entry.background', {'children': [(
+                                'Entry.padding', {'children': [(
+                                    'Entry.textarea', {'sticky': 'nswe'})],
+                            'sticky': 'nswe'})], 'sticky': 'nswe'})],
+                            'border':'6', 'sticky': 'nswe'})])
+        self.estyle.configure("EntryStyle.TEntry", fieldbackground=colorScheme["defaultEntryBg"], bordercolor=colorScheme["defaultEntryBc"])
 
     def shutdown(self):
         self._vm._shutdown()
@@ -216,7 +231,7 @@ class VmApp:
         tableRelief = "solid"
         self.clearFrame(self.emulatorMemoryView)
         self.memScrollFrame = TKHelper.ScrollFrame(self.emulatorMemoryView)
-        for idx, key in enumerate(["Posição", "Valor"]):
+        for idx, key in enumerate([" Posição ", "  Valor  "]):
             Label(self.memScrollFrame.viewPort, text=key, font=('bold'), relief=tableRelief).grid(row=0, column=idx, sticky="snew")
         self.memScrollFrame.pack(side="top", fill="y")
 
@@ -225,6 +240,8 @@ class VmApp:
 
     def emulatorStdin(self):
         # Enable text field
+        self.estyle.configure("EntryStyle.TEntry", bordercolor=colorScheme["typingBc"])
+        self.GUI_Stdin["style"] = "EntryStyle.TEntry"
         self.programScrollFrame.jump(line=self.__prevI)
         self.memScrollFrame.jump(line = self.__prevS)
         self.GUI_Stdin.config(state="normal", cursor="xterm")
@@ -234,7 +251,6 @@ class VmApp:
         while True:
             # Allow input (release lock)
             try:
-                self.GUI_Stdin["style"] = "Green.TEntry"
                 self.Stdin_request_lock.release()
             except RuntimeError: # FIXME this should not be necessary
                 pass
@@ -247,9 +263,11 @@ class VmApp:
                 self.GUI_Stdin.delete(0, END) # Clear buffer
                 self.GUI_Stdin.config(state="disabled", cursor="X_cursor")
                 self._vm._stdinReply(_aux)
+                self.estyle.configure("EntryStyle.TEntry", fieldbackground=colorScheme["defaultEntryBg"], bordercolor=colorScheme["defaultEntryBc"])
+                self.GUI_Stdin["style"] = "EntryStyle.TEntry"
             except ValueError:
-                self.GUI_Stdin["style"] = "Red.TEntry"
-                # Invalid string, maybe alert user? - TODO change field to red, until regains focus
+                self.estyle.configure("EntryStyle.TEntry", fieldbackground=colorScheme["errorBg"])
+                self.GUI_Stdin["style"] = "EntryStyle.TEntry"
                 pass
 
     def isInstructionBreak(self, instruction):
