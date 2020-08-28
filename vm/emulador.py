@@ -193,10 +193,10 @@ class VmApp:
         for idx, contents in enumerate(newStack):
             try:
                 if contents != self._prevStack[idx]:
-                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=str(f'{contents:.2e}') if  contents > 999999 else str(contents))
+                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=str(f'{contents:.2e}') if len(contents) > 6 else str(contents))
             except IndexError:
                 Label(self.memScrollFrame.viewPort, text=str(idx), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=0, sticky="snew")
-                Label(self.memScrollFrame.viewPort,text=str(f'{contents:.2e}') if  contents > 999999 else str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
+                Label(self.memScrollFrame.viewPort,text=str(f'{contents:.2e}') if len(contents) > 6 else str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
         self._prevStack = newStack[:]
 
         if self.__prevS:
