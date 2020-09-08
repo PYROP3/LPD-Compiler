@@ -16,6 +16,7 @@ class Lexer:
             self.remove_whitespaces,
             self.remove_comments,
             self.space_symbols,
+            self.explode_boundaries,
             self.rejoin_symbols,
             self.split_tokens
         ]
@@ -55,6 +56,12 @@ class Lexer:
         _symb = lexerhelper.special_symbols
         for symbol in _symb:
             self.working_program = [re.sub(f"({symbol[0]}) *({symbol[1]})", r"\1\2", line) for line in self.working_program]
+
+    def explode_boundaries(self):
+        _progws = re.compile(r"([ía-zA-Z0-9_])([^ía-zA-Z0-9_ ])")
+        _progsw = re.compile(r"([^ía-zA-Z0-9_ ])([ía-zA-Z0-9_])")
+        self.working_program = [_progws.sub(r"\1 \2", line) for line in self.working_program]
+        self.working_program = [_progsw.sub(r"\1 \2", line) for line in self.working_program]
 
     def split_tokens(self):
         self.tokens = [line.split() for line in self.working_program]

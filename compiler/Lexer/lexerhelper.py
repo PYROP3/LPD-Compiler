@@ -36,9 +36,9 @@ special_tokens = {
     ':': 'sdoispontos'
 }
 
-valid_characters = "a-zA-Z0-9:=.;,()<>!+\-*:_í"
+valid_characters = r"a-zA-Z0-9:=.;,()<>!+\-*:_í"
 
-symbol_list = ":;.,()\-+*<>=!"
+symbol_list = r":;.,()\-+*<>=!"
 
 special_symbols = [":=", "!=", "<=", ">="]
 
