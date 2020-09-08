@@ -65,13 +65,7 @@ class Lexer:
 
     def split_tokens(self):
         self.tokens = [line.split() for line in self.working_program]
-        skip_lines = [bool(len(line) == 0) for line in self.tokens]
-        self.line_translation = []
-        line_no = 0
-        for isSkip in skip_lines:
-            if not isSkip:
-                self.line_translation.append(line_no)
-            line_no += 1
+        self.line_translation = [idx for (idx, val) in enumerate(self.tokens) if len(val)]
         if self.debug:
             for no, thing in enumerate(self.line_translation):
                 print("Original: {} | Translated: {}".format(no, thing))
