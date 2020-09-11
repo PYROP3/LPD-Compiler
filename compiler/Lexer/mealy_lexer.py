@@ -122,6 +122,9 @@ class MealyLexer:
                 if _next.append_char:
                     self.current_token += char
 
+            else:
+                _next = MealyState('normal', wrap_token=True)
+
             # Add token to list if its finished
             if _next.wrap_token:
                 self.log("*** Wrapping token [{}] ***".format(self.current_token))
