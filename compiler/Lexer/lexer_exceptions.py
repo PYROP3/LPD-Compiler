@@ -5,7 +5,7 @@ class LexerException(Exception):
         self.program_line = program_line
         self.col = col
         self.length = length
-        super().__init__(msg + '\n' + self.getCause())
+        super().__init__(msg)# + '\n' + self.getCause())
 
     def getCause(self, ptr='^', trail='~'):
         aux = list(re.sub('[^\t]', ' ', self.program_line))

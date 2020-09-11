@@ -1,9 +1,10 @@
 from Lexer.lexer import Lexer
+from Lexer.mealy_lexer import MealyLexer
 import argparse
 
 class Compiler:
     def __init__(self, program_name, debug=False):
-        self.lexer = Lexer(program_name, debug=debug)
+        self.lexer = MealyLexer(program_name, debug=debug)
 
     def exec(self):
         _tokens = self.lexer.exec()
