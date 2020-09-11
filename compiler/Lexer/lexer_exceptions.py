@@ -41,3 +41,17 @@ class InvalidTokenException(LexerException):
             token
         )
         super().__init__(self.message, program_line, col, len(token))
+
+class UnexpectedEOFException(LexerException):
+    def __init__(self, program_name, program_line, line, col, end_state):
+        self.program_name = program_name
+        self.line = line
+        self.col = col
+        self.end_state = end_state
+        self.message = "{}:{}:{}: EOF before finish: {}".format(
+            program_name,
+            line + 1,
+            col + 1,
+            self.end_state
+        )
+        super().__init__(self.message, program_line, col, 0)

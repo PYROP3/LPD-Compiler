@@ -32,10 +32,10 @@ class MealyLexer:
                 ':': MealyState('attribution', reset_token=True, append_char=True),
                 '+-*': MealyState('arithmetic', reset_token=True, append_char=True),
                 '!<>=': MealyState('rel_op', reset_token=True, append_char=True),
-                ';': MealyState('semicolon', reset_token=True, append_char=True, wrap_token='auto'),
+                ';': MealyState('semicolon', reset_token=True, append_char=True),
                 ' \n\t': MealyState('normal'),
-                '(': MealyState('open_paren', reset_token=True, append_char=True, wrap_token='auto'),
-                ')': MealyState('close_paren', reset_token=True, append_char=True, wrap_token='auto'),
+                '(': MealyState('open_paren', reset_token=True, append_char=True),
+                ')': MealyState('close_paren', reset_token=True, append_char=True),
             },
             'in_bracket': {
                 '}': MealyState('normal'),
@@ -54,99 +54,22 @@ class MealyLexer:
                 'def': MealyState('in_c-like')
             },
             'digit': {
-                '0123456789': MealyState('digit', append_char=True),
-                ' \n\t': MealyState('normal', wrap_token='snúmero'),
-                ';': MealyState('semicolon', wrap_token='snúmero'),
-                '+-*': MealyState('arithmetic', wrap_token='snúmero'),
-                '(': MealyState('open_paren', wrap_token='auto'),
-                ')': MealyState('close_paren', wrap_token='auto'),
-                '.': MealyState('normal',  wrap_token='auto')
+                '0123456789': MealyState('digit', append_char=True)
             },
             'word': {
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí_0123456789': MealyState('word', append_char=True),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>=': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto'),
-                '(': MealyState('open_paren', wrap_token='auto'),
-                ')': MealyState('close_paren', wrap_token='auto'),
-                '.': MealyState('normal', wrap_token='auto')
-            },
-            'semicolon': {
-                '{': MealyState('in_bracket', wrap_token='auto'),
-                '/': MealyState('in_c-like_start', wrap_token='auto'),
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>=': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto')
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí_0123456789': MealyState('word', append_char=True)
             },
             'attribution': {
-                '=': MealyState('normal', append_char=True, wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-            },
-            'colon': {
-                '{': MealyState('in_bracket', wrap_token='auto'),
-                '/': MealyState('in_c-like_start', wrap_token='auto'),
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>=': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto')
+                '=': MealyState('normal', append_char=True, wrap_token='auto')
             },
             'rel_op': {
-                '=': MealyState('normal', append_char=True, wrap_token='auto'),
-                '{': MealyState('in_bracket', wrap_token='auto'),
-                '/': MealyState('in_c-like_start', wrap_token='auto'),
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto')
+                '=': MealyState('normal', append_char=True, wrap_token='auto')
             },
-            'arithmetic': {
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                '(': MealyState('open_paren', wrap_token='auto'),
-                ')': MealyState('close_paren', wrap_token='auto'),
-            },
-            'open_paren': {
-                '{': MealyState('in_bracket', wrap_token='auto'),
-                '/': MealyState('in_c-like_start', wrap_token='auto'),
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>=': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto')
-            },
-            'close_paren': {
-                '{': MealyState('in_bracket', wrap_token='auto'),
-                '/': MealyState('in_c-like_start', wrap_token='auto'),
-                '0123456789': MealyState('digit', wrap_token='auto'),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token='auto'),
-                ':': MealyState('attribution', wrap_token='auto'),
-                '+-*': MealyState('arithmetic', wrap_token='auto'),
-                '!<>=': MealyState('rel_op', wrap_token='auto'),
-                ';': MealyState('semicolon', wrap_token='auto'),
-                ' \n\t': MealyState('normal', wrap_token='auto'),
-                ',': MealyState('colon', wrap_token='auto')
-            },
+            'colon': { },
+            'semicolon': { },
+            'arithmetic': { },
+            'open_paren': { },
+            'close_paren': { },
         },
         default_rules={
                 '{': MealyState('in_bracket', wrap_token='auto'),
@@ -170,14 +93,24 @@ class MealyLexer:
 
             if char is not None:
                 if char not in _mealy_state and 'def' not in _mealy_state:
-                    raise Exception("{}:{}:{}: Invalid char '{}'".format(self.program_name, self.current_line, self.current_col, char))
+                    raise lexer_exceptions.InvalidTokenException(
+                        self.program_name, 
+                        self.original_program[self.current_line], 
+                        self.current_line, 
+                        self.current_col, 
+                        char)
 
                 _next = _mealy_state[char if char in _mealy_state else 'def']
                 self.log("Current {}, read {}, next {}".format(_state, char, _next.next_state))
 
                 if _next.exception:
                     _ex, _txt = _next.exception
-                    raise _ex(self.program_name, "", self.current_line, self.current_col, _txt.format(char=char))
+                    raise _ex(
+                        self.program_name, 
+                        self.original_program[self.current_line], 
+                        self.current_line, 
+                        self.current_col, 
+                        _txt.format(char=char))
 
                 if _next.reset_token:
                     self.current_token = ''
@@ -187,14 +120,15 @@ class MealyLexer:
 
             # Add token to list if its finished
             if _next.wrap_token:
-                self.log("Wrapping token [{}]".format(self.current_token))
-                if _next.wrap_token == 'auto':
-                    if self.current_token in lexerhelper.special_tokens:
-                        self.appendToken(lexerhelper.special_tokens[self.current_token])
-                    else:
-                        self.appendToken('sidentificador')
+                self.log("*** Wrapping token [{}] ***".format(self.current_token))
+                if self.current_token in lexerhelper.special_tokens:
+                    self.appendToken(lexerhelper.special_tokens[self.current_token])
                 else:
-                    self.appendToken(_next.wrap_token)
+                    try:
+                        _a = int(self.current_token)
+                        self.appendToken('snúmero')
+                    except ValueError:
+                        self.appendToken('sidentificador')
                 #print(self.parsed_tokens)
                 self.current_token = char
             
@@ -210,7 +144,12 @@ class MealyLexer:
             _state = _next.next_state
 
         if _state != 'normal':
-            raise Exception("EOF before finish: " + _state)
+            raise lexer_exceptions.UnexpectedEOFException(
+                self.program_name, 
+                self.original_program[self.current_line], 
+                self.current_line, 
+                self.current_col, 
+                _state)
         #self.print_lexem_table()
 
     def appendToken(self, _type):
