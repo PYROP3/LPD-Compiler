@@ -7,14 +7,16 @@ class Lexer:
     def __init__(self, program_name, debug=False):
         self.program_name = program_name
         self.valid_characters = re.compile('[^{}]'.format(lexerhelper.valid_characters))
-        self.original_program = open(self.program_name, 'r', encoding='utf-8').readlines()
-        self.working_program = self.original_program[:]
+        self.working_program = open(self.program_name, 'r', encoding='utf-8').read()
+        self.original_program = self.working_program.split('\n')
+        self.parsed_tokens = []
         self.debug = debug
 
     def exec(self):
         routine = [
-            self.remove_whitespaces,
             self.remove_comments,
+            self.break_lines,
+            self.remove_whitespaces,
             self.space_symbols,
             self.explode_boundaries,
             self.rejoin_symbols,
@@ -22,6 +24,7 @@ class Lexer:
         ]
 
         for func in routine:
+            self.log(func)
             func()
             if self.debug:
                 self.print_working_program()
@@ -39,13 +42,66 @@ class Lexer:
 
         return self.parsed_tokens
 
+    def remove_comments(self):
+        _aux = list(self.working_program)
+        _rules = {
+            'normal': {
+                '{': ('in_bracket', True, False),
+                '/': ('in_c-like_start', False, False),
+                'def': ('normal', False, False)
+            },
+            'in_bracket': {
+                '}': ('normal', True, False),
+                'def': ('in_bracket', True, False)
+            },
+            'in_c-like_start': {
+                '*': ('in_c-like', True, True),
+                'def': ('normal', False, False)
+            },
+            'in_c-like': {
+                '*': ('in_c-like_end', True, False),
+                'def': ('in_c-like', True, False)
+            },
+            'in_c-like_end': {
+                '/': ('normal', True, True),
+                'def': ('in_c-like', True, False)
+            }
+        }
+        _state = 'normal'
+        _prev_in_comment = False
+        _in_comment = False
+        _lineno = 0
+        _colno = 0
+        _comment_line = 0
+        _comment_col = 0
+        for idx, c in enumerate(_aux):
+            if c in _rules[_state]:
+                _state, _in_comment, _remove_prev = _rules[_state][c]
+            else:
+                _state, _in_comment, _remove_prev = _rules[_state]['def']
+            if _in_comment:
+                _aux[idx] = '\n' if c == '\n' else ' '
+                if not _prev_in_comment:
+                    _comment_line = _lineno
+                    _comment_col = _colno
+            if _remove_prev:
+                _aux[idx-1] = ' '
+            _colno += 1
+            if c == '\n':
+                _lineno += 1
+                _colno = 0
+            _prev_in_comment = _in_comment
+            
+        if _state != 'normal':
+            raise Exception("Terminei com estado {} ({}:{})".format(_state, _comment_line, _comment_col))
+        self.working_program = ''.join(_aux)
+
+    def break_lines(self):
+        self.working_program = self.working_program.split('\n')
+
     def remove_whitespaces(self):
         _prog = re.compile(r"[ \n\t]+")
         self.working_program = [_prog.sub(' ', line) for line in self.working_program]
-
-    def remove_comments(self):
-        _prog = re.compile(r"\{[^}]*?\}")
-        self.working_program = [_prog.sub('', line) for line in self.working_program]
 
     def space_symbols(self):
         _symb = lexerhelper.symbol_list
@@ -121,7 +177,10 @@ class Lexer:
                 self.parsed_tokens.append(tok)
 
     def print_working_program(self, tokens=False):
-        print('\n'.join(["{}: {}".format(lineno, " ".join(line) if tokens else line) for lineno, line in enumerate(self.working_program)]))
+        if type(self.working_program) == type([]):
+            print('\n'.join(["{}: {}".format(lineno, " ".join(line) if tokens else line) for lineno, line in enumerate(self.working_program)]))
+        else:
+            print(self.working_program)
 
     def print_lexem_table(self):
         assert self.parsed_tokens is not None, "Parser has not been executed"
