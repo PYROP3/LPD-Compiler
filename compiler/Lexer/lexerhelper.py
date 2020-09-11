@@ -42,6 +42,6 @@ symbol_list = r":;.,()\-+*<>=!"
 
 special_symbols = [":=", "!=", "<=", ">="]
 
-format_identifier = '[a-zA-Z][a-zA-Z0-9_]*'
+format_identifier = r'[a-zA-Z][a-zA-Z0-9_]*'
 
-format_number = '[0-9]+'
+format_number = r'[0-9]+'

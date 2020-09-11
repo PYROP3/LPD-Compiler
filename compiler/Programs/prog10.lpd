@@ -1,7 +1,7 @@
 {Teste numero com ponto}
 programa test1;
 
-var a,b,c: inteiro;
+var _a,b,c: inteiro;
 
 {proc 1}
 procedimento analisa1;

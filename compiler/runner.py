@@ -3,7 +3,7 @@ import compiler
 if __name__ == '__main__':
     verbose = False
     print("=======================================================================")
-    for i in range(9):
+    for i in range(10):
         try:
             this = compiler.Compiler('Programs/prog{}.lpd'.format(i+1))
             this.exec()
