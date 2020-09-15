@@ -4,24 +4,30 @@ class MealyState:
         self.next_state = next_state
 
 class MealyMachine:
-    def __init__(self, rules, initial_state=None, default_rules=None):
+    def __init__(self, rules, initial_state=None, default_rules=None, raw=False):
         self.machine = {}
         self.state = initial_state
         for state in rules:
             _aux = {}
             for chars in rules[state]:
                 if chars != 'def':
-                    for char in chars:
-                        _aux[char] = rules[state][chars]
+                    if raw:
+                        _aux[chars] = rules[state][chars]
+                    else:
+                        for char in chars:
+                            _aux[char] = rules[state][chars]
                 else:
                     _aux['def'] = rules[state]['def']
             if default_rules:
                 if 'def' not in _aux:
                     for chars in default_rules:
                         if chars != 'def':
-                            for char in chars:
-                                if char not in _aux:
-                                    _aux[char] = default_rules[chars]
+                            if raw:
+                                _aux[chars] = default_rules[chars]
+                            else:
+                                for char in chars:
+                                    if char not in _aux:
+                                        _aux[char] = default_rules[chars]
                         else:
                             _aux['def'] = default_rules['def']
 

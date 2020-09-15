@@ -1,12 +1,15 @@
 from LPDLexer.mealy_lexer import MealyLexer
+from LPDSyntax.syntax import Syntax
 import argparse
 
 class Compiler:
     def __init__(self, program_name, debug=False):
         self.lexer = MealyLexer(program_name, debug=debug)
+        self.syntax = Syntax(debug=True)
 
     def run(self):
         _tokens = self.lexer.run()
+        self.syntax.init_symbol_table(_tokens).run()
         #self.lexer.print_lexem_table()
 
 def get_args():

@@ -76,7 +76,8 @@ class MealyLexer:
                 '+-*;.,()': MealyLexerState('symbol', wrap_token=True),
                 '!<>=': MealyLexerState('rel_op', wrap_token=True),
                 ' \n\t.': MealyLexerState('normal', wrap_token=True),
-        }).getMachine()
+        },
+        raw=False).getMachine()
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)
 
@@ -154,6 +155,7 @@ class MealyLexer:
                 self.current_col, 
                 _state)
         #self.print_lexem_table()
+        return self.parsed_tokens
 
     def appendToken(self, _type):
         self.parsed_tokens.append({
