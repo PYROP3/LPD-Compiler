@@ -1,14 +1,16 @@
 import unittest
 import compiler
-from Lexer import lexer_exceptions
+from LPDLexer import lexer_exceptions
+
+debug = False
 
 def run(program_name):
     try:
-        compiler.Compiler(program_name, True).run()
-        print("=======================================================================")
+        compiler.Compiler(program_name, debug=debug).run()
+        print("\n=======================================================================")
         return None
     except Exception as e:
-        print("=======================================================================")
+        print("\n=======================================================================")
         return e
 
 class VerifyProgramTests(unittest.TestCase):

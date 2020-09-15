@@ -1,11 +1,11 @@
 import re
 from . import lexerhelper
 from . import lexer_exceptions
-from . import mealy_machine
+from Automata import mealy_machine
 
-class MealyState:
+class MealyLexerState(mealy_machine.MealyState):
     def __init__(self, next_state, reset_token=False, append_char=False, wrap_token=False, exception=None):
-        self.next_state = next_state
+        super().__init__(next_state)
         self.reset_token = reset_token
         self.append_char = append_char
         self.wrap_token = wrap_token
@@ -28,54 +28,54 @@ class MealyLexer:
         self.current_col = 0
         self.machine = mealy_machine.MealyMachine({ #mealy_machine[state][character]
             'normal': {
-                '{': MealyState('in_bracket'),
-                '/': MealyState('in_c-like_start'),
-                '0123456789': MealyState('digit', reset_token=True, append_char=True),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', reset_token=True, append_char=True),
-                ':': MealyState('attribution', reset_token=True, append_char=True),
-                '+-*;.,()': MealyState('symbol', reset_token=True, append_char=True),
-                '!<>=': MealyState('rel_op', reset_token=True, append_char=True),
-                ' \n\t': MealyState('normal'),
+                '{': MealyLexerState('in_bracket'),
+                '/': MealyLexerState('in_c-like_start'),
+                '0123456789': MealyLexerState('digit', reset_token=True, append_char=True),
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyLexerState('word', reset_token=True, append_char=True),
+                ':': MealyLexerState('attribution', reset_token=True, append_char=True),
+                '+-*;.,()': MealyLexerState('symbol', reset_token=True, append_char=True),
+                '!<>=': MealyLexerState('rel_op', reset_token=True, append_char=True),
+                ' \n\t': MealyLexerState('normal'),
             },
             'in_bracket': {
-                '}': MealyState('normal'),
-                'def': MealyState('in_bracket')
+                '}': MealyLexerState('normal'),
+                'def': MealyLexerState('in_bracket')
             },
             'in_c-like_start': {
-                '*': MealyState('in_c-like'),
-                'def': MealyState('error', exception=(lexer_exceptions.InvalidSymbolException, "/{char}"))
+                '*': MealyLexerState('in_c-like'),
+                'def': MealyLexerState('error', exception=(lexer_exceptions.InvalidSymbolException, "/{char}"))
             },
             'in_c-like': {
-                '*': MealyState('in_c-like_end'),
-                'def': MealyState('in_c-like')
+                '*': MealyLexerState('in_c-like_end'),
+                'def': MealyLexerState('in_c-like')
             },
             'in_c-like_end': {
-                '/': MealyState('normal'),
-                'def': MealyState('in_c-like')
+                '/': MealyLexerState('normal'),
+                'def': MealyLexerState('in_c-like')
             },
             'digit': {
-                '0123456789': MealyState('digit', append_char=True)
+                '0123456789': MealyLexerState('digit', append_char=True)
             },
             'word': {
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí_0123456789': MealyState('word', append_char=True)
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí_0123456789': MealyLexerState('word', append_char=True)
             },
             'attribution': {
-                '=': MealyState('normal', append_char=True, wrap_token=True)
+                '=': MealyLexerState('normal', append_char=True, wrap_token=True)
             },
             'rel_op': {
-                '=': MealyState('normal', append_char=True, wrap_token=True)
+                '=': MealyLexerState('normal', append_char=True, wrap_token=True)
             },
             'symbol': { }
         },
         default_rules={
-                '{': MealyState('in_bracket', wrap_token=True),
-                '/': MealyState('in_c-like_start', wrap_token=True),
-                '0123456789': MealyState('digit', wrap_token=True),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token=True),
-                ':': MealyState('attribution', wrap_token=True),
-                '+-*;.,()': MealyState('symbol', wrap_token=True),
-                '!<>=': MealyState('rel_op', wrap_token=True),
-                ' \n\t.': MealyState('normal', wrap_token=True),
+                '{': MealyLexerState('in_bracket', wrap_token=True),
+                '/': MealyLexerState('in_c-like_start', wrap_token=True),
+                '0123456789': MealyLexerState('digit', wrap_token=True),
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyLexerState('word', wrap_token=True),
+                ':': MealyLexerState('attribution', wrap_token=True),
+                '+-*;.,()': MealyLexerState('symbol', wrap_token=True),
+                '!<>=': MealyLexerState('rel_op', wrap_token=True),
+                ' \n\t.': MealyLexerState('normal', wrap_token=True),
         }).getMachine()
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)
@@ -113,7 +113,7 @@ class MealyLexer:
                     self.current_token += char
 
             else:
-                _next = MealyState('normal', wrap_token=True)
+                _next = MealyLexerState('normal', wrap_token=True)
 
             # Add token to list if its finished
             if _next.wrap_token:

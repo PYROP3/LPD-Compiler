@@ -1,6 +1,12 @@
+
+class MealyState:
+    def __init__(self, next_state):
+        self.next_state = next_state
+
 class MealyMachine:
-    def __init__(self, rules, default_rules=None):
+    def __init__(self, rules, initial_state=None, default_rules=None):
         self.machine = {}
+        self.state = initial_state
         for state in rules:
             _aux = {}
             for chars in rules[state]:
@@ -15,13 +21,16 @@ class MealyMachine:
                         if chars != 'def':
                             for char in chars:
                                 if char not in _aux:
-                                    #print("Filling with default for {} in {}".format(char, default_rules[chars].next_state))
                                     _aux[char] = default_rules[chars]
                         else:
                             _aux['def'] = default_rules['def']
 
             self.machine[state] = _aux
-        #print(self.machine)
 
     def getMachine(self):
         return self.machine
+
+    def step(self, read):
+        _next = self.machine[self.state][read]
+        self.state = _next.next_state
+        return _next
