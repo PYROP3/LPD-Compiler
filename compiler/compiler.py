@@ -1,13 +1,12 @@
-from Lexer.lexer import Lexer
-from Lexer.mealy_lexer import MealyLexer
+from LPDLexer.mealy_lexer import MealyLexer
 import argparse
 
 class Compiler:
     def __init__(self, program_name, debug=False):
         self.lexer = MealyLexer(program_name, debug=debug)
 
-    def exec(self):
-        _tokens = self.lexer.exec()
+    def run(self):
+        _tokens = self.lexer.run()
         #self.lexer.print_lexem_table()
 
 def get_args():
@@ -19,5 +18,5 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     this = Compiler(args.arquivo, args.verbose)
-    this.exec()
+    this.run()
     this.lexer.print_lexem_table()

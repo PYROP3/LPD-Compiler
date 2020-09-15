@@ -4,7 +4,7 @@ from Lexer import lexer_exceptions
 
 def run(program_name):
     try:
-        compiler.Compiler(program_name, True).exec()
+        compiler.Compiler(program_name, True).run()
         print("=======================================================================")
         return None
     except Exception as e:

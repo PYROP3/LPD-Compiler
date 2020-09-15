@@ -80,7 +80,7 @@ class MealyLexer:
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)
 
-    def exec(self):
+    def run(self):
         _state = 'normal'
         for char in self.working_program + [' ']:
             _mealy_state = self.machine[_state]
@@ -175,4 +175,4 @@ class MealyLexer:
 
 if __name__ == '__main__':
     lexer = MealyLexer("prog1.lpd", debug=True)
-    lexer.exec()
+    lexer.run()
