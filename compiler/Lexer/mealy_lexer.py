@@ -33,12 +33,9 @@ class MealyLexer:
                 '0123456789': MealyState('digit', reset_token=True, append_char=True),
                 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', reset_token=True, append_char=True),
                 ':': MealyState('attribution', reset_token=True, append_char=True),
-                '+-*': MealyState('arithmetic', reset_token=True, append_char=True),
+                '+-*;.,()': MealyState('symbol', reset_token=True, append_char=True),
                 '!<>=': MealyState('rel_op', reset_token=True, append_char=True),
-                ';': MealyState('semicolon', reset_token=True, append_char=True),
                 ' \n\t': MealyState('normal'),
-                '(': MealyState('open_paren', reset_token=True, append_char=True),
-                ')': MealyState('close_paren', reset_token=True, append_char=True),
             },
             'in_bracket': {
                 '}': MealyState('normal'),
@@ -68,12 +65,7 @@ class MealyLexer:
             'rel_op': {
                 '=': MealyState('normal', append_char=True, wrap_token=True)
             },
-            'symbol': { },
-            'colon': { },
-            'semicolon': { },
-            'arithmetic': { },
-            'open_paren': { },
-            'close_paren': { },
+            'symbol': { }
         },
         default_rules={
                 '{': MealyState('in_bracket', wrap_token=True),
@@ -81,13 +73,9 @@ class MealyLexer:
                 '0123456789': MealyState('digit', wrap_token=True),
                 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyState('word', wrap_token=True),
                 ':': MealyState('attribution', wrap_token=True),
-                '+-*': MealyState('arithmetic', wrap_token=True),
+                '+-*;.,()': MealyState('symbol', wrap_token=True),
                 '!<>=': MealyState('rel_op', wrap_token=True),
-                ';': MealyState('semicolon', wrap_token=True),
                 ' \n\t.': MealyState('normal', wrap_token=True),
-                ',': MealyState('colon', wrap_token=True),
-                '(': MealyState('open_paren', wrap_token=True),
-                ')': MealyState('close_paren', wrap_token=True)
         }).getMachine()
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)

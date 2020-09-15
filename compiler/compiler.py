@@ -20,3 +20,4 @@ if __name__ == '__main__':
     args = get_args()
     this = Compiler(args.arquivo, args.verbose)
     this.exec()
+    this.lexer.print_lexem_table()
