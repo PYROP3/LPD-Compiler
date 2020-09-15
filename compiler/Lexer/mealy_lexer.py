@@ -14,9 +14,11 @@ class MealyState:
 class MealyLexer:
     def __init__(self, program_name, debug=False):
         self.program_name = program_name
-        self.working_program = open(self.program_name, 'r', encoding='utf-8').read()
+        _f = open(self.program_name, 'r', encoding='utf-8')
+        self.working_program = _f.read()
+        _f.close()
         self.original_program = self.working_program.split('\n')
-        self.working_program = list(self.working_program)
+        self.working_program = list(self.working_program)       
         self.parsed_tokens = []
         self.debug = debug
         self.state = 'normal'
@@ -92,7 +94,7 @@ class MealyLexer:
 
     def exec(self):
         _state = 'normal'
-        for char in self.working_program + [None]:
+        for char in self.working_program + [' ']:
             _mealy_state = self.machine[_state]
 
             if char is not None:

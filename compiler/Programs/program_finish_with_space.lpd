@@ -1,0 +1,24 @@
+programa test;
+var v: inteiro;
+    i,max, juro: inteiro;
+início
+    enquanto v != -1
+    faca
+    início
+        {leia o valor inicial}
+        leia(v);
+        {leia a taxa de juros }
+        leia(juro);
+        { Leia o periodo };
+        leia(max);
+        valor:= 1; /* comentário c-like */
+        i:= 1;
+        enquanto i<=max { (1+juro) elevado a n }
+        faca início
+            valor:= valor*(1+juro);
+            i:= i+1 /* começa o comentário de várias linhas
+            tem várias linhas
+            acaba aqui*/fim;
+        escreva(valor)
+    fim
+fim 
