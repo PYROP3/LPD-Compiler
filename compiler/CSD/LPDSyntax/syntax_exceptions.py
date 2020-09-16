@@ -11,5 +11,5 @@ class UnexpectedTypeException(SyntaxException):
         else:
             self.expects = expects
         self.got = got
-        self.message = "error: expected one of [{}] but found {} instead".format(', '.join(self.expects), got)
+        self.message = "error: expected one of {} but found {} instead".format(', '.join(self.expects), got)
         super().__init__(program_name, line, col, msg=self.message)

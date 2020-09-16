@@ -170,6 +170,7 @@ class Syntax:
     def lpd_analisa_declaracao_procedimento(self):
         self.read_and_assert_is('sidentificador')
         self.read_and_assert_is('sponto_vírgula')
+        self.call(self.lpd_analisa_bloco)
 
     def lpd_analisa_declaracao_funcao(self):
         self.read_and_assert_is('sidentificador')
@@ -216,20 +217,18 @@ class Syntax:
         elif self.get_clexem() in ['verdadeiro', 'falso']:
             self.get_next_symbol()
         else:
-            self.throw_unexpected_type("one of {}".format(', '.join(['sidentificador', 'snúmero', 'snao', 'sabre_parênteses', 'verdadeiro', 'falso'])))
+            self.throw_unexpected_type(['sidentificador', 'snúmero', 'snao', 'sabre_parênteses', 'verdadeiro', 'falso'])
 
     def lpd_analisa_atribuicao(self):
-        while self.get_ctype() != "sponto_vírgula":
-            self.get_next_symbol()
-        pass
+        self.get_next_symbol()
+        self.call(self.lpd_analisa_expressao)
 
     def lpd_analisa_chprocedimento(self):
-        self.get_next_symbol()
         pass
 
     def lpd_analisa_chfuncao(self):
+        self.assert_ctype_is('sidentificador')
         self.get_next_symbol()
-        pass
 
     def throw_unexpected_type(self, expected, unexpected=None):
         if unexpected is None:
@@ -237,7 +236,12 @@ class Syntax:
         if 'line' not in self.current_symbol or 'col' not in self.current_symbol:
             self.current_symbol['line'] = '?'
             self.current_symbol['col'] = '?'
-        raise syntax_exceptions.UnexpectedTypeException(self.program_name, self.current_symbol['line'], self.current_symbol['col'], expected, unexpected)
+        if type(expected) == type('a'):
+            expected = [expected]
+        _rev = {lexerhelper.special_tokens[key]:key for key in lexerhelper.special_tokens}
+        _expected = ["'" + _rev[key] + "'" for key in expected]
+        _unexpected = "'" + _rev[unexpected] + "'" if unexpected else None
+        raise syntax_exceptions.UnexpectedTypeException(self.program_name, self.current_symbol['line'], self.current_symbol['col'], _expected, _unexpected)
 
     def validate_symbol_table(self, symbol_table):
         if len(symbol_table) == 0:
