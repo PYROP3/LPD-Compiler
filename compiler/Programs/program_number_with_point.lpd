@@ -5,9 +5,7 @@ var a,b,c: inteiro;
 
 {proc 1}
 procedimento analisa1;
-var a, x: inteiro;
-       z: booleano;
-inicio
+início
   se x>1  entao
       x:= 0;
   leia(z);

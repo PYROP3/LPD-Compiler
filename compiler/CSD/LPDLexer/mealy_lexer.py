@@ -1,7 +1,7 @@
 import re
 from . import lexerhelper
 from . import lexer_exceptions
-from Automata import mealy_machine
+from ..Automata import mealy_machine
 
 class MealyLexerState(mealy_machine.MealyState):
     def __init__(self, next_state, reset_token=False, append_char=False, wrap_token=False, exception=None):
@@ -88,7 +88,7 @@ class MealyLexer:
 
             if char is not None:
                 if char not in _mealy_state and 'def' not in _mealy_state:
-                    raise lexer_exceptions.InvalidTokenException(
+                    raise lexer_exceptions.InvalidSymbolException(
                         self.program_name, 
                         self.original_program[self.current_line], 
                         self.current_line, 
@@ -131,7 +131,7 @@ class MealyLexer:
                         self.program_name, 
                         self.original_program[self.current_line], 
                         self.current_line, 
-                        self.current_col, 
+                        self.current_col-1,
                         self.current_token)
 
                 self.current_token = char

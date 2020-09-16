@@ -18,7 +18,7 @@ início
             valor:= valor*(1+juro);
             i:= i+1; /* começa o comentário de várias linhas
             tem várias linhas
-            acaba aqui*/fim
+            acaba aqui*/fim;
         escreva(valor);
     fim
 fim.

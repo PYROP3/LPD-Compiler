@@ -1,15 +1,23 @@
-import compiler
+import os
+
+from CSD import compiler
+
+inputdir = "Programs"
+linesep = "==================================================================================================================================================================="
 
 if __name__ == '__main__':
+    this = compiler.Compiler("Programs/program.lpd")
+    this.run()
     verbose = False
-    print("=======================================================================")
-    for i in range(11):
+    print(linesep)
+    for prog in os.listdir(inputdir):
+        filename = inputdir + "/" + prog
         try:
-            this = compiler.Compiler('Programs/prog{}.lpd'.format(i+1))
+            this = compiler.Compiler(filename)
             this.run()
-            print("prog{}.lpd OK".format(i+1))
+            print("{}\n\t+ OK".format(filename))
         except Exception as e:
-            print("prog{}.lpd FAIL: {}".format(i+1, e))
+            print("{}\n\t- {}".format(filename, e))
         if verbose:
             this.lexer.print_lexem_table()
-        print("=======================================================================")
+        print(linesep)

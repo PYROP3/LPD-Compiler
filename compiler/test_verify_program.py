@@ -1,6 +1,7 @@
 import unittest
-import compiler
-from LPDLexer import lexer_exceptions
+from CSD import compiler
+from CSD.LPDLexer import lexer_exceptions
+from CSD.LPDExceptions import lpd_exceptions
 
 debug = False
 
@@ -9,7 +10,7 @@ def run(program_name):
         compiler.Compiler(program_name, debug=debug).run()
         print("\n=======================================================================")
         return None
-    except Exception as e:
+    except lpd_exceptions.LPDException as e:
         print("\n=======================================================================")
         return e
 
