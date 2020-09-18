@@ -11,4 +11,7 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     this = compiler.Compiler(args.arquivo, args.verbose)
+    # try:
     this.run(debug=args.verbose)
+    # except Exception:
+        # this.lexer.print_lexem_table()

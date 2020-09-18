@@ -24,7 +24,7 @@ class VerifyProgramTests(unittest.TestCase):
         result = run('Programs/program_with_unrecognized_symbols.lpd')
         self.assertEqual(type(result), lexer_exceptions.InvalidSymbolException)
         self.assertEqual(3, result.line)
-        self.assertEqual(0, result.col)
+        self.assertEqual(1, result.col)
 
     def test_return_true_program_with_recognized_symbols(self):
         result = run('Programs/program_with_recognized_symbols.lpd')
@@ -38,13 +38,13 @@ class VerifyProgramTests(unittest.TestCase):
 
     def test_return_false_program_with_close_braces(self):
         result = run('Programs/program_with_close_braces.lpd')
-        self.assertEqual(type(result), lexer_exceptions.InvalidTokenException)
+        self.assertEqual(type(result), lexer_exceptions.InvalidSymbolException)
         self.assertEqual(3, result.line)
         self.assertEqual(8, result.col)
 
     def test_return_false_program_with_close_braces2(self):
         result = run('Programs/program_with_close_braces2.lpd')
-        self.assertEqual(type(result), lexer_exceptions.InvalidTokenException)
+        self.assertEqual(type(result), lexer_exceptions.InvalidSymbolException)
         self.assertEqual(0, result.line)
         self.assertEqual(0, result.col)
 
@@ -68,11 +68,11 @@ class VerifyProgramTests(unittest.TestCase):
         result = run('Programs/program_number_with_point_and_unclose_braces.lpd')
         self.assertEqual(type(result), lexer_exceptions.UnexpectedEOFException)
         self.assertEqual(36, result.line) #Linha do erro aponta final do programa já que comentário não foi fechado
-        self.assertEqual(0, result.col)
+        self.assertEqual(1, result.col)
 
     def test_return_false_program_number_with_underlined_at_the_beginning_of_identifier(self):
         result = run('Programs/program_number_with_underlined_at_the_beginning_of_identifier.lpd')
-        self.assertEqual(type(result), lexer_exceptions.InvalidTokenException) #Verificar se Exception esta certa
+        self.assertEqual(type(result), lexer_exceptions.InvalidSymbolException) #Verificar se Exception esta certa
         self.assertEqual(3, result.line)
         self.assertEqual(4, result.col)
 

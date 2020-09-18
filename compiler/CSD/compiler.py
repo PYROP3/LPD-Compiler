@@ -10,10 +10,17 @@ class Compiler:
         if self.do_syntax:
             self.syntax = Syntax(program_name, debug=debug)
 
-    def run(self, debug=False):
-        _tokens = self.lexer.run()
-        if debug:
-            self.lexer.print_lexem_table()
+    def run(self, debug=False, always_print_lexem_table=True):
+        if always_print_lexem_table:
+            try:
+                _tokens = self.lexer.run()
+            except Exception as e:
+                self.lexer.print_lexem_table()
+                print(e)
+        else:
+            _tokens = self.lexer.run()
+            if debug:
+                self.lexer.print_lexem_table()
         if self.do_syntax:
             self.syntax.init_symbol_table(_tokens).run()
 
