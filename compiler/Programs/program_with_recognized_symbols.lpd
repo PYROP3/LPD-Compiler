@@ -1,15 +1,15 @@
-programa test1;;
+programa test1;
 
 var a,b,c: inteiro;
 
 {proc 1}
 procedimento analisa1;
-var a, x; inteiro;
+var a, x: inteiro;
        z: booleano;
 inicio
   se x>1  entao
       x:= 0;
-      leia(z)
+      leia(z);
   enquanto (a != 89) e (a<= 1000)  {condicao de parada}
   faca inicio
            a:= x+z

@@ -35,7 +35,7 @@ class FileManager:
             self.open_file_write()
 
         self.working_file.write(contents)
-        
+
         self.close_file()
 
         self.is_edited = False

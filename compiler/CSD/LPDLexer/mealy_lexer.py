@@ -12,7 +12,7 @@ class MealyLexerState(mealy_machine.MealyState):
         self.exception = exception
 
 class MealyLexer:
-    def __init__(self, program_name, debug=False):
+    def __init__(self, program_name, debug=False, is_standalone=False):
         self.program_name = program_name
         _f = open(self.program_name, 'r', encoding='utf-8')
         self.working_program = _f.read()
@@ -80,8 +80,9 @@ class MealyLexer:
         raw=False).getMachine()
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)
+        self.is_standalone = is_standalone
 
-    def run(self):
+    def tokenGenerator(self):
         _state = 'normal'
         for char in self.working_program + [' ']:
             _mealy_state = self.machine[_state]
@@ -120,12 +121,27 @@ class MealyLexer:
             if _next.wrap_token:
                 self.log("*** Wrapping token [{}] ***".format(self.current_token))
                 if self.current_token in lexerhelper.special_tokens:
-                    self.appendToken(lexerhelper.special_tokens[self.current_token])
+                    if self.is_standalone:
+                        self.appendToken(lexerhelper.special_tokens[self.current_token])
+                    else:
+                        _tok = self.createToken(lexerhelper.special_tokens[self.current_token])
+                        self.appendToken(_tok)
+                        yield _tok
                 else: # Check if is a number or a variable
                     if self.number_prog.match(self.current_token):
-                        self.appendToken('snúmero')
+                        if self.is_standalone:
+                            self.appendToken('snúmero')
+                        else:
+                            _tok = self.createToken('snúmero')
+                            self.appendToken(_tok)
+                            yield _tok
                     elif self.identifier_prog.match(self.current_token):
-                        self.appendToken('sidentificador')
+                        if self.is_standalone:
+                            self.appendToken('sidentificador')
+                        else:
+                            _tok = self.createToken('sidentificador')
+                            self.appendToken(_tok)
+                            yield _tok
                     else: # Unknown format
                         raise lexer_exceptions.InvalidTokenException(
                         self.program_name, 
@@ -157,12 +173,17 @@ class MealyLexer:
         #self.print_lexem_table()
         return self.parsed_tokens
 
-    def appendToken(self, _type):
-        self.parsed_tokens.append({
+    def createToken(self, _type):
+        return {
             'lexeme': self.current_token, 
             'type': _type,
             'line': self.current_line, 
-            'col': self.current_col - len(self.current_token)})
+            'col': self.current_col - len(self.current_token)
+            }
+
+    # TODO is this necessary?
+    def appendToken(self, token):
+        self.parsed_tokens.append(token)
 
     def print_lexem_table(self):
         assert self.parsed_tokens is not None, "Parser has not been executed"

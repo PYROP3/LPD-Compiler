@@ -4,25 +4,24 @@ from .LPDLexer.mealy_lexer import MealyLexer
 from .LPDSyntax.syntax import Syntax
 
 class Compiler:
-    def __init__(self, program_name, debug=False, do_syntax=False):
+    def __init__(self, program_name, debug=False):
         self.lexer = MealyLexer(program_name, debug=debug)
-        self.do_syntax = do_syntax
-        if self.do_syntax:
-            self.syntax = Syntax(program_name, debug=debug)
+        self.syntax = Syntax(program_name, lexer=self.lexer, debug=debug)
 
     def run(self, debug=False, always_print_lexem_table=True):
-        if always_print_lexem_table:
-            try:
-                _tokens = self.lexer.run()
-            except Exception as e:
-                self.lexer.print_lexem_table()
-                print(e)
-        else:
-            _tokens = self.lexer.run()
-            if debug:
-                self.lexer.print_lexem_table()
-        if self.do_syntax:
-            self.syntax.init_symbol_table(_tokens).run()
+        self.syntax.run()
+        # if always_print_lexem_table:
+        #     try:
+        #         _tokens = self.lexer.run()
+        #     except Exception as e:
+        #         self.lexer.print_lexem_table()
+        #         print(e)
+        # else:
+        #     _tokens = self.lexer.run()
+        #     if debug:
+        #         self.lexer.print_lexem_table()
+        # if self.do_syntax:
+        #     self.syntax.init_symbol_table(_tokens).run()
 
 def get_args():
     parser = argparse.ArgumentParser(description="Compilador de 'Linguagem de Programação Didática'")

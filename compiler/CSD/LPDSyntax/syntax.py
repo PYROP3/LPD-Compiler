@@ -2,24 +2,13 @@ from ..LPDLexer import lexerhelper
 from . import syntax_exceptions
 
 class Syntax:
-    def __init__(self, program_name, debug=False, symbol_table=None):
+    def __init__(self, program_name, debug=False, lexer=None):
         self.debug = debug
         self.current_symbol = None
-        if symbol_table:
-            self.init_symbol_table(symbol_table)
         self._indent = 0
         self.program_name = program_name
-
-    def init_symbol_table(self, symbol_table):
-        self.validate_symbol_table(symbol_table)
-        self.symbol_table = symbol_table
-        self.symbols = self.symbols_gen()
-        return self
-
-    def symbols_gen(self):
-        for symbol in self.symbol_table:
-            yield symbol
-        yield {'type':None, 'line':self.symbol_table[-1]['line'], 'col':self.symbol_table[-1]['col'] + len(self.symbol_table[-1]['lexeme'])}
+        self.lexer = lexer
+        self.symbols = self.lexer.tokenGenerator()
 
     def get_next_symbol(self):
         self.current_symbol = next(self.symbols)
@@ -240,7 +229,7 @@ class Syntax:
             expected = [expected]
         _rev = {lexerhelper.special_tokens[key]:key for key in lexerhelper.special_tokens}
         _expected = ["'" + _rev[key] + "'" for key in expected]
-        _unexpected = "'" + _rev[unexpected] + "'" if unexpected else None
+        _unexpected = "'" + _rev[unexpected] + "'" if unexpected in _rev else "'" + self.current_symbol['lexeme'] + "'"
         raise syntax_exceptions.UnexpectedTypeException(self.program_name, self.current_symbol['line'], self.current_symbol['col'], _expected, _unexpected)
 
     def validate_symbol_table(self, symbol_table):
