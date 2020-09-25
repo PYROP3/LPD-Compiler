@@ -34,7 +34,7 @@ class VerifyProgramTests(unittest.TestCase):
         result = run('Programs/program_with_exclamation_mark_without_equal.lpd')
         self.assertEqual(type(result), lexer_exceptions.InvalidTokenException)
         self.assertEqual(9, result.line)
-        self.assertEqual(6, result.col) 
+        self.assertEqual(6, result.col)
 
     def test_return_false_program_with_close_braces(self):
         result = run('Programs/program_with_close_braces.lpd')

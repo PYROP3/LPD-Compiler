@@ -38,7 +38,7 @@ class IndexedText(tk.Text):
 
         # generate an event if something was added or deleted,
         # or the cursor position changed
-        if (args[0] in ("insert", "replace", "delete") or 
+        if (args[0] in ("insert", "replace", "delete") or
             args[0:3] == ("mark", "set", "insert") or
             args[0:2] == ("xview", "moveto") or
             args[0:2] == ("xview", "scroll") or
@@ -70,6 +70,6 @@ class IndexedTextWrapper(tk.Frame):
         self.text.insert("end", "one\ntwo\nthree\n")
         self.text.insert("end", "four\n",("bigfont",))
         self.text.insert("end", "five\n")
-        
+
     def _on_change(self, event):
         self.linenumbers.redraw()

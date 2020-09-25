@@ -18,7 +18,7 @@ class MealyLexer:
         self.working_program = _f.read()
         _f.close()
         self.original_program = self.working_program.split('\n')
-        self.working_program = list(self.working_program)       
+        self.working_program = list(self.working_program)
         self.parsed_tokens = []
         self.debug = debug
         self.state = 'normal'
@@ -90,10 +90,10 @@ class MealyLexer:
             if char is not None:
                 if char not in _mealy_state and 'def' not in _mealy_state:
                     raise lexer_exceptions.InvalidSymbolException(
-                        self.program_name, 
-                        self.original_program[self.current_line], 
-                        self.current_line, 
-                        self.current_col, 
+                        self.program_name,
+                        self.original_program[self.current_line],
+                        self.current_line,
+                        self.current_col,
                         char)
 
                 _next = _mealy_state[char if char in _mealy_state else 'def']
@@ -102,10 +102,10 @@ class MealyLexer:
                 if _next.exception:
                     _ex, _txt = _next.exception
                     raise _ex(
-                        self.program_name, 
-                        self.original_program[self.current_line], 
-                        self.current_line, 
-                        self.current_col, 
+                        self.program_name,
+                        self.original_program[self.current_line],
+                        self.current_line,
+                        self.current_col,
                         _txt.format(char=char))
 
                 if _next.reset_token:
@@ -144,14 +144,14 @@ class MealyLexer:
                             yield _tok
                     else: # Unknown format
                         raise lexer_exceptions.InvalidTokenException(
-                        self.program_name, 
-                        self.original_program[self.current_line], 
-                        self.current_line, 
+                        self.program_name,
+                        self.original_program[self.current_line],
+                        self.current_line,
                         self.current_col-1,
                         self.current_token)
 
                 self.current_token = char
-            
+
             # Update coords
             if char == '\n':
                 self.current_col = 0
@@ -165,19 +165,19 @@ class MealyLexer:
 
         if _state != 'normal':
             raise lexer_exceptions.UnexpectedEOFException(
-                self.program_name, 
-                self.original_program[self.current_line], 
-                self.current_line, 
-                self.current_col, 
+                self.program_name,
+                self.original_program[self.current_line],
+                self.current_line,
+                self.current_col,
                 _state)
         #self.print_lexem_table()
         return self.parsed_tokens
 
     def createToken(self, _type):
         return {
-            'lexeme': self.current_token, 
+            'lexeme': self.current_token,
             'type': _type,
-            'line': self.current_line, 
+            'line': self.current_line,
             'col': self.current_col - len(self.current_token)
             }
 
@@ -195,7 +195,3 @@ class MealyLexer:
     def log(self, line, end='\n'):
         if (self.debug):
             print(line, end=end)
-
-if __name__ == '__main__':
-    lexer = MealyLexer("prog1.lpd", debug=True)
-    lexer.run()

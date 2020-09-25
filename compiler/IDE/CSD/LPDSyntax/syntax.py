@@ -46,7 +46,7 @@ class Syntax:
             self.log("Done!")
         except StopIteration:
             raise Exception("Program finished before formal end")
-        
+
     def lpd_analisa_programa(self):
         self.read_and_assert_is('sprograma')
         self.read_and_assert_is('sidentificador')

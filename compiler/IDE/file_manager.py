@@ -1,4 +1,3 @@
-
 class FileManager:
     def __init__(self):
         self.working_filename = None
