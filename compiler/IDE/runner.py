@@ -2,12 +2,10 @@ import os
 
 from CSD import compiler
 
-inputdir = "Programs"
+inputdir = "../Programs"
 linesep = "==================================================================================================================================================================="
 
 if __name__ == '__main__':
-    this = compiler.Compiler("Programs/program.lpd")
-    this.run()
     verbose = False
     print(linesep)
     for prog in os.listdir(inputdir):
