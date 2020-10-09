@@ -12,7 +12,7 @@ class MealyLexerState(mealy_machine.MealyState):
         self.exception = exception
 
 class MealyLexer:
-    def __init__(self, program_name, debug=False, is_standalone=False):
+    def __init__(self, program_name, debug=False):
         self.program_name = program_name
         _f = open(self.program_name, 'r', encoding='utf-8')
         self.working_program = _f.read()
@@ -80,7 +80,6 @@ class MealyLexer:
         raw=False).getMachine()
         self.identifier_prog = re.compile(lexerhelper.format_identifier)
         self.number_prog = re.compile(lexerhelper.format_number)
-        self.is_standalone = is_standalone
 
     def tokenGenerator(self):
         _state = 'normal'
@@ -121,29 +120,19 @@ class MealyLexer:
             if _next.wrap_token:
                 self.log("*** Wrapping token [{}] ***".format(self.current_token))
                 if self.current_token in lexerhelper.special_tokens:
-                    if self.is_standalone:
-                        self.appendToken(lexerhelper.special_tokens[self.current_token])
-                    else:
-                        _tok = self.createToken(lexerhelper.special_tokens[self.current_token])
-                        self.appendToken(_tok)
-                        yield _tok
-                else: # Check if is a number or a variable
-                    if self.number_prog.match(self.current_token):
-                        if self.is_standalone:
-                            self.appendToken('snúmero')
-                        else:
-                            _tok = self.createToken('snúmero')
-                            self.appendToken(_tok)
-                            yield _tok
-                    elif self.identifier_prog.match(self.current_token):
-                        if self.is_standalone:
-                            self.appendToken('sidentificador')
-                        else:
-                            _tok = self.createToken('sidentificador')
-                            self.appendToken(_tok)
-                            yield _tok
-                    else: # Unknown format
-                        raise lexer_exceptions.InvalidTokenException(
+                    _tok = self.createToken(lexerhelper.special_tokens[self.current_token])
+                    self.appendToken(_tok)
+                    yield _tok
+                elif self.number_prog.match(self.current_token): # Check if is a number or an identifier
+                    _tok = self.createToken('snúmero')
+                    self.appendToken(_tok)
+                    yield _tok
+                elif self.identifier_prog.match(self.current_token):
+                    _tok = self.createToken('sidentificador')
+                    self.appendToken(_tok)
+                    yield _tok
+                else: # Unknown format
+                    raise lexer_exceptions.InvalidTokenException(
                         self.program_name,
                         self.original_program[self.current_line],
                         self.current_line,
