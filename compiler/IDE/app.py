@@ -39,6 +39,7 @@ class App(pygubu.TkApplication):
         self.master.bind('<Control-s>', lambda event: self.cb_menu_save())
         self.master.bind('<Control-o>', lambda event: self.cb_menu_open())
         self.master.bind('<Control-n>', lambda event: self.cb_menu_new())
+        self.master.bind('<Control-r>', lambda event: self.cb_menu_compile())
 
     def run(self):
         self.mainwindow.mainloop()

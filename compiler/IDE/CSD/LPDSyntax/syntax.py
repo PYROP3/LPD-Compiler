@@ -41,11 +41,8 @@ class Syntax:
         self._indent -= 1
 
     def run(self):
-        try:
-            self.call(self.lpd_analisa_programa)
-            self.log("Done!")
-        except StopIteration:
-            raise Exception("Program finished before formal end")
+        self.call(self.lpd_analisa_programa)
+        self.log("Done!")
 
     def lpd_analisa_programa(self):
         self.read_and_assert_is('sprograma')
@@ -53,6 +50,15 @@ class Syntax:
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
         self.assert_ctype_is('sponto')
+        try:
+            self.get_next_symbol()
+            raise syntax_exceptions.UnexpectedTokenException(
+                self.program_name, 
+                self.current_symbol['line'], 
+                self.current_symbol['col'], 
+                self.current_symbol)
+        except StopIteration:
+            pass # Expected
 
     def lpd_analisa_bloco(self):
         self.get_next_symbol()
@@ -230,7 +236,12 @@ class Syntax:
         _rev = {lexerhelper.special_tokens[key]:key for key in lexerhelper.special_tokens}
         _expected = ["'" + _rev[key] + "'" for key in expected]
         _unexpected = "'" + _rev[unexpected] + "'" if unexpected in _rev else "'" + self.current_symbol['lexeme'] + "'"
-        raise syntax_exceptions.UnexpectedTypeException(self.program_name, self.current_symbol['line'], self.current_symbol['col'], _expected, _unexpected)
+        raise syntax_exceptions.UnexpectedTypeException(
+            self.program_name, 
+            self.current_symbol['line'], 
+            self.current_symbol['col'], 
+            _expected, 
+            _unexpected)
 
     def validate_symbol_table(self, symbol_table):
         if len(symbol_table) == 0:

@@ -1,27 +1,29 @@
 import argparse
 
 from .LPDLexer.mealy_lexer import MealyLexer
+from .LPDLexer.lexer_exceptions import UnexpectedEOFException
 from .LPDSyntax.syntax import Syntax
+from .LPDExceptions.lpd_exceptions import LPDException
+
+class InformalEndException(LPDException):
+    def __init__(self, program_name, program_line, line, col):
+        self.message = "Program finished inside a comment"
+        super().__init__(program_name, line, col, msg=self.message)
 
 class Compiler:
     def __init__(self, program_name, debug=False):
         self.lexer = MealyLexer(program_name, debug=debug)
         self.syntax = Syntax(program_name, lexer=self.lexer, debug=debug)
 
-    def run(self, debug=False, always_print_lexem_table=True):
-        self.syntax.run()
-        # if always_print_lexem_table:
-        #     try:
-        #         _tokens = self.lexer.run()
-        #     except Exception as e:
-        #         self.lexer.print_lexem_table()
-        #         print(e)
-        # else:
-        #     _tokens = self.lexer.run()
-        #     if debug:
-        #         self.lexer.print_lexem_table()
-        # if self.do_syntax:
-        #     self.syntax.init_symbol_table(_tokens).run()
+    def run(self, debug=False):
+        try:
+            self.syntax.run()
+        except UnexpectedEOFException as e:
+            raise InformalEndException(
+                e.program_name,
+                None,
+                e.line,
+                e.col)
 
 def get_args():
     parser = argparse.ArgumentParser(description="Compilador de 'Linguagem de Programação Didática'")
