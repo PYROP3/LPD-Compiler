@@ -100,6 +100,7 @@ class MealyLexer:
 
                 if _next.exception:
                     _ex, _txt = _next.exception
+                    self.log("Got exception {}".format(_next.exception))
                     raise _ex(
                         self.program_name,
                         self.original_program[self.current_line],
@@ -159,8 +160,9 @@ class MealyLexer:
                 self.current_line,
                 self.current_col,
                 _state)
-        #self.print_lexem_table()
-        return self.parsed_tokens
+
+        return
+        #raise StopIteration()
 
     def createToken(self, _type):
         return {

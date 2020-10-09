@@ -11,8 +11,14 @@ class Syntax:
         self.symbols = self.lexer.tokenGenerator()
 
     def get_next_symbol(self):
-        self.current_symbol = next(self.symbols)
-        self.log('\t' * self._indent + str(self.current_symbol))
+        try:
+            self.current_symbol = next(self.symbols)
+            self.log('\t' * self._indent + str(self.current_symbol))
+        except StopIteration:
+            raise syntax_exceptions.NoMoreTokensException(
+                self.program_name,
+                self.current_symbol['line'],
+                self.current_symbol['col'])
 
     def get_ctype(self):
         return self.current_symbol['type']
@@ -57,7 +63,7 @@ class Syntax:
                 self.current_symbol['line'], 
                 self.current_symbol['col'], 
                 self.current_symbol)
-        except StopIteration:
+        except syntax_exceptions.NoMoreTokensException:
             pass # Expected
 
     def lpd_analisa_bloco(self):
@@ -82,7 +88,7 @@ class Syntax:
             if self.get_ctype() == 'svírgula':
                 self.get_next_symbol()
                 if self.get_ctype() == 'sdoispontos':
-                    self.throw_unexpected_type('~sdoispontos')
+                    self.throw_expected_anything_else('sdoispontos')
             if self.get_ctype() == 'sdoispontos':
                 break
         self.get_next_symbol()
@@ -242,6 +248,13 @@ class Syntax:
             self.current_symbol['col'], 
             _expected, 
             _unexpected)
+
+    def throw_expected_anything_else(self, but):
+        raise syntax_exceptions.ExpectedAnythingElseException(
+            self.program_name, 
+            self.current_symbol['line'], 
+            self.current_symbol['col'], 
+            but)
 
     def validate_symbol_table(self, symbol_table):
         if len(symbol_table) == 0:

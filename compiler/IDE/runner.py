@@ -5,8 +5,9 @@ from CSD import compiler
 inputdir = "../Programs"
 linesep = "==================================================================================================================================================================="
 
+verbose = False
+
 if __name__ == '__main__':
-    verbose = False
     print(linesep)
     for prog in os.listdir(inputdir):
         filename = inputdir + "/" + prog
