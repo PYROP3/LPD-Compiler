@@ -7,9 +7,13 @@ class LPDException(Exception):
             _msg = "{} at {}:{}:{}".format(type(self).__name__, program_name, self._inc(line), self._inc(col))
         else:
             _msg = "{} at {}:{}:{}: {}".format(type(self).__name__, program_name, self._inc(line), self._inc(col), msg)
+        self.msg = _msg
         super().__init__(_msg)
 
     def _inc(self, v):
         if type(v) == type(1):
             return v+1
         return v
+
+    def __str__(self):
+        return self.msg
