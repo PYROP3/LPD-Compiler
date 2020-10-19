@@ -7,6 +7,7 @@ from tkinter import filedialog
 from CSD import compiler
 from Widgets import IndexedText
 import file_manager
+from CSD.LPDExceptions import lpd_exceptions
 
 PROJECT_PATH = os.path.dirname(__file__)
 PROJECT_UI = os.path.join(PROJECT_PATH, "app.ui")

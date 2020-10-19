@@ -77,10 +77,10 @@ class Tela():
         #self.col = local[1]
 
     def setup_shortcuts(self):
-        self.main_frame.bind('<Control-s>', lambda event: self.cb_menu_save())
-        self.main_frame.bind('<Control-o>', lambda event: self.cb_menu_open())
-        self.main_frame.bind('<Control-n>', lambda event: self.cb_menu_new())
-        self.main_frame.bind('<Control-r>', lambda event: self.cb_menu_compile())
+        self.root.bind('<Control-s>', lambda event: self.cb_menu_save())
+        self.root.bind('<Control-o>', lambda event: self.cb_menu_open())
+        self.root.bind('<Control-n>', lambda event: self.cb_menu_new())
+        self.root.bind('<Control-r>', lambda event: self.cb_menu_compile())
 
     def cb_menu_compile(self):
         # Save file
@@ -88,7 +88,7 @@ class Tela():
             return
 
         # Create compiler object
-        _compiler = compiler.Compiler(self.file_manager.working_filename)
+        _compiler = compiler.Compiler(self.file_manager.working_filename, debug=True)
 
         # Execute
         try:

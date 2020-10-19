@@ -110,15 +110,18 @@ class Syntax:
         self.get_next_symbol()
 
     def lpd_analisa_comando_simples(self):
-        try:
-            self.call({
+        _aux = {
                 'sidentificador': self.lpd_analisa_atrib_chprocedimento,
                 'sse': self.lpd_analisa_se,
                 'senquanto': self.lpd_analisa_enquanto,
                 'sleia': self.lpd_analisa_leia,
                 'sescreva': self.lpd_analisa_escreva
-            }[self.get_ctype()])
-        except KeyError:
+            }
+        _type = self.get_ctype()
+
+        if _type in _aux:
+            self.call(_aux[_type])
+        else:
             self.call(self.lpd_analisa_comandos)
 
     def lpd_analisa_atrib_chprocedimento(self):
@@ -234,14 +237,24 @@ class Syntax:
     def throw_unexpected_type(self, expected, unexpected=None):
         if unexpected is None:
             unexpected = self.get_ctype()
+
         if 'line' not in self.current_symbol or 'col' not in self.current_symbol:
             self.current_symbol['line'] = '?'
             self.current_symbol['col'] = '?'
+
         if type(expected) == type('a'):
             expected = [expected]
+
         _rev = {lexerhelper.special_tokens[key]:key for key in lexerhelper.special_tokens}
-        _expected = ["'" + _rev[key] + "'" for key in expected]
+        _rev.update({
+            'sidentificador': 'identificador',
+            'snúmero': 'número'
+        })
+
+        _expected = ["'" + (_rev[key] if key in _rev else key) + "'"  for key in expected]
         _unexpected = "'" + _rev[unexpected] + "'" if unexpected in _rev else "'" + self.current_symbol['lexeme'] + "'"
+        self.log("Throwing with expected={}, unexpected={}".format(_expected, _unexpected))
+
         raise syntax_exceptions.UnexpectedTypeException(
             self.program_name, 
             self.current_symbol['line'], 
