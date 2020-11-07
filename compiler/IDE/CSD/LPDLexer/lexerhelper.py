@@ -34,6 +34,8 @@ special_tokens = {
     'e': 'se',
     'ou': 'sou',
     'nao': 'snao',
+    'verdadeiro': 'sverdadeiro',
+    'falso': 'sfalso',
     ':': 'sdoispontos'
 }
 

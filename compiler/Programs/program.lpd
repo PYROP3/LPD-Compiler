@@ -1,5 +1,5 @@
 programa test;
-var v: inteiro;
+var v, valor: inteiro;
     i,max, juro: inteiro;
 início
     enquanto v != -1

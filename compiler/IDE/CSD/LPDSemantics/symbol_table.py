@@ -34,19 +34,30 @@ class SymbolDatagram:
     def setRetType(self, sret):
         self._sRetType = sret
 
+    def getRetType(self):
+        return self._sRetType
+
 class SymbolTable:
-    def __init__(self):
+    def __init__(self, debug=False):
         self._table = []
         self._lvl = 0
+        self._debug = debug
+
+    def log(self, msg, end='\n'):
+        if self._debug:
+            print("[SymbolTable]: " + msg, end=end)
 
     def inLvl(self):
+        self.log("In level (currently {})".format(self._lvl))
         self._lvl += 1
 
     def outLvl(self):
+        self.log("Out level (currently {})".format(self._lvl))
         assert self._lvl > 0, "Level is already 0"
         self._lvl -= 1
 
     def insert(self, lexem, stype, rotule):
+        self.log("Inserting lexem {} (type={}, rotule={})".format(lexem, stype, rotule))
         self._table.append(SymbolDatagram(lexem, stype, self._lvl, rotule))
 
     def pop(self):
@@ -54,6 +65,9 @@ class SymbolTable:
         while self._table[-1].isType("var"):
             _pop.append(self._table.pop())
         return _pop
+
+    def get(self, index):
+        return self._table[index]
 
     def _find(self, matcher):
         for i in reversed(range(len(self._table))):
@@ -86,6 +100,14 @@ class SymbolTable:
     def pesquisa_duplicvar(self, lexema):
         return self._findCurrent(lambda symb: symb.isVar() and symb.isLexem(lexema))
 
-    def coloca_tipo_tabela(self, lexema, tipo):
-        _i = self._find(lambda symb: symb.isLexem(lexema))
-        self._table[_i].setRetType(tipo)
+    def coloca_tipo_tabela(self, tipo):
+        self.log("Setting type {}".format(tipo))
+        _i = -1
+        while abs(_i) < len(self._table) and self._table[_i].getRetType() == None:
+            self.log("Setting type {} for {}:{}".format(tipo, _i, self._table[_i]))
+            self._table[_i].setRetType(tipo)
+            _i -= 1
+
+    def setLastRetType(self, tipo):
+        self.log("Setting type {} for {}:{}".format(tipo, -1, self._table[-1]))
+        self._table[-1].setRetType(tipo)
