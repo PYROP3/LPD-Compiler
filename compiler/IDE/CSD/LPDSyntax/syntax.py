@@ -2,6 +2,7 @@ from ..LPDLexer import lexerhelper
 from ..LPDSemantics import expressionator
 from ..LPDSemantics import symbol_table
 from ..LPDSemantics import semantics_exceptions
+from ..LPDSemantics import return_mapper
 from . import syntax_exceptions
 
 class Syntax:
@@ -15,6 +16,7 @@ class Syntax:
         self.symbols = self.lexer.tokenGenerator()
         self.symbol_table = symbol_table.SymbolTable(debug=debug)
         self.expressionator = None
+        self.return_mapper = return_mapper.ReturnMapperWrapper()
 
     def get_next_symbol(self):
         try:
@@ -121,6 +123,11 @@ class Syntax:
         self.get_next_symbol()
 
     def lpd_analisa_comando_simples(self):
+        if self.return_mapper.validate_command() == False:
+            raise semantics_exceptions.UnreachableCodeException(
+                self.program_name,
+                self.current_symbol['line'],
+                self.current_symbol['col'])
         _aux = {
                 'sidentificador': self.lpd_analisa_atrib_chprocedimento,
                 'sse': self.lpd_analisa_se,
@@ -174,11 +181,14 @@ class Syntax:
         self.call(self.lpd_analisa_expressao_primer)
         self.validate_conditional()
         self.assert_ctype_is('sentao')
+        self.return_mapper.in_if()
         self.get_next_symbol()
         self.call(self.lpd_analisa_comando_simples)
         if self.get_ctype() == 'ssenao':
+            self.return_mapper.in_else()
             self.get_next_symbol()
             self.call(self.lpd_analisa_comando_simples)
+        self.return_mapper.wrap_conditional()
 
     def lpd_analisa_subrotinas(self):
         if self.get_ctype() in ['sprocedimento', 'sfuncao']:
@@ -202,9 +212,11 @@ class Syntax:
 
     def lpd_analisa_declaracao_funcao(self):
         self.read_and_assert_is('sidentificador')
+        _aux_symbol = self.current_symbol
         self.symbol_table.inLvl()
         self.tabela_pesquisa_declfunc()
         self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_FUNC, None)
+        self.return_mapper.push(self.get_clexem())
         self.read_and_assert_is('sdoispontos')
         self.get_next_symbol()
         self.assert_ctype_in(['sinteiro', 'sbooleano'])
@@ -212,6 +224,11 @@ class Syntax:
         self.get_next_symbol()
         if self.get_ctype() == 'sponto_vírgula':
             self.call(self.lpd_analisa_bloco)
+        if self.return_mapper.pop().validate_end() == False:
+            raise semantics_exceptions.NonDeterministicFunctionException(
+                self.program_name,
+                _aux_symbol['line'],
+                _aux_symbol['col'])
         self.symbol_table.outLvl()
 
     def lpd_analisa_expressao_primer(self):
@@ -292,6 +309,7 @@ class Syntax:
                 _aux_symbol['col'],
                 _expectedReturnType, 
                 _actualReturnType)
+        self.return_mapper.try_ret(_aux_symbol['lexeme'])
 
     def lpd_analisa_chprocedimento(self):
         pass

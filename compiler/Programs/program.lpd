@@ -1,6 +1,11 @@
 programa test;
 var v, valor: inteiro;
     i,max, juro: inteiro;
+funcao teste: inteiro;
+inicio
+	teste:=v;
+
+fim;
 início
     enquanto v != -1
     faca
@@ -23,3 +28,6 @@ início
     fim
 fim.
 {123}
+
+
+

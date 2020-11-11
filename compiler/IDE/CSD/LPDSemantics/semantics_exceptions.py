@@ -4,6 +4,16 @@ class SemanticsException(lpd_exceptions.LPDException):
     def __init__(self, program_name, line, col, msg):
         super().__init__(program_name, line, col, msg=msg)
 
+class UnreachableCodeException(SemanticsException):
+    def __init__(self, program_name, line, col):
+        self.message = "error: unreachable code!"
+        super().__init__(program_name, line, col, msg=self.message)
+
+class NonDeterministicFunctionException(SemanticsException):
+    def __init__(self, program_name, line, col):
+        self.message = "error: function can be executed without a return statement"
+        super().__init__(program_name, line, col, msg=self.message)
+
 class MismatchedTypeException(SemanticsException):
     def __init__(self, program_name, line, col, expected, actual):
         self.expected = expected
