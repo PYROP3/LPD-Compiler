@@ -169,12 +169,15 @@ class Syntax:
         self.get_next_symbol()
 
     def lpd_analisa_enquanto(self):
+        _aux = self.current_symbol
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
-        self.validate_conditional()
+        self.validate_conditional(symbol=_aux)
         self.assert_ctype_is('sfaca')
+        self.return_mapper.in_while()
         self.get_next_symbol()
         self.call(self.lpd_analisa_comando_simples)
+        self.return_mapper.out_while()
 
     def lpd_analisa_se(self):
         self.get_next_symbol()
@@ -221,9 +224,11 @@ class Syntax:
         self.get_next_symbol()
         self.assert_ctype_in(['sinteiro', 'sbooleano'])
         self.symbol_table.setLastRetType({'sinteiro':'inteiro', 'sbooleano':'booleano'}[self.get_ctype()])
-        self.get_next_symbol()
-        if self.get_ctype() == 'sponto_vírgula':
-            self.call(self.lpd_analisa_bloco)
+        self.read_and_assert_is('sponto_vírgula')
+        self.call(self.lpd_analisa_bloco)
+        # self.get_next_symbol()
+        # if self.get_ctype() == 'sponto_vírgula':
+        #     self.call(self.lpd_analisa_bloco)
         if self.return_mapper.pop().validate_end() == False:
             raise semantics_exceptions.NonDeterministicFunctionException(
                 self.program_name,
@@ -350,13 +355,14 @@ class Syntax:
                 self.current_symbol['col'],
                 self.current_symbol['lexeme'])
 
-    def validate_conditional(self):
+    def validate_conditional(self, symbol=None):
+        symbol = symbol or self.current_symbol
         _ret = self.expressionator.validate()
         if _ret != 'booleano':
             raise semantics_exceptions.InvalidConditionalException(
                 self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'])
+                symbol['line'],
+                symbol['col'])
 
     def throw_unexpected_type(self, expected, unexpected=None):
         if unexpected is None:

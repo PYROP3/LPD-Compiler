@@ -101,7 +101,7 @@ class Expressionator:
         self.log("Closing parenthesis")
         _top = self._opStack.pop()
         while _top.op != '(':
-            self._postfix.append(PostfixDatagram(_top.op, False, _top.isUnary))
+            self.__postfix_add(PostfixDatagram(_top.op, False, _top.isUnary))
             _top = self._opStack.pop()
 
     def register(self, item, precedence=None, isUnary=False):
@@ -110,15 +110,18 @@ class Expressionator:
         self.log("Inserting operation {} - precedence {} (isUnary = {})".format(item, precedence, isUnary))
         while len(self._opStack) > 0 and self._opStack[-1].precedence >= precedence:
             _a = self._opStack.pop()
-            self._postfix.append(PostfixDatagram(_a.op, False, _a.isUnary))
+            self.__postfix_add(PostfixDatagram(_a.op, False, _a.isUnary))
         self._opStack.append(StackDatagram(item, precedence, isUnary))
         self.exhibit()
+
+    def __postfix_add(self, item):
+        self._postfix.append(item)
 
     def finish(self):
         self.log("Wrapping up postfix ({} elements left)".format(len(self._opStack)))
         while len(self._opStack) > 0:
             _a = self._opStack.pop()
-            self._postfix.append(PostfixDatagram(_a.op, False, _a.isUnary))
+            self.__postfix_add(PostfixDatagram(_a.op, False, _a.isUnary))
         self._finished = True
 
     def validate(self):
@@ -154,7 +157,7 @@ class Expressionator:
         return _aux[0].opType
 
     def getPostfix(self):
-        return self._postfix
+        return self._postfix[:]
 
     def validateType(self, expected, got, anchor):
         if expected != got.opType:

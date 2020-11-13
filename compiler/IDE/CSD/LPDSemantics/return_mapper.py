@@ -20,6 +20,14 @@ class ReturnMapperWrapper:
             if self.functionNames[-1] == variable_name:
                 self.returnMappers[-1].ret()
 
+    def in_while(self):
+        if len(self.returnMappers) > 0:
+            self.returnMappers[-1].in_while()
+
+    def out_while(self):
+        if len(self.returnMappers) > 0:
+            self.returnMappers[-1].out_while()
+
     def in_if(self):
         if len(self.returnMappers) > 0:
             self.returnMappers[-1].in_if()
@@ -41,9 +49,18 @@ class ReturnMapper:
     def __init__(self):
         self._ret = [False]
         self._idx = 0
+        self._ign_depth = 0
 
     def ret(self):
-        self._ret[self._idx] = True
+        if self._ign_depth == 0:
+            self._ret[self._idx] = True
+
+    def in_while(self):
+        self._ign_depth += 1
+
+    def out_while(self):
+        assert self._ign_depth > 0, "Not in while"
+        self._ign_depth -= 1
 
     def in_if(self):
         self._idx = self._idx * 2 + 1
