@@ -73,11 +73,13 @@ class PostfixDatagram:
         return "Datagram {} (isOperand={}; isUnary={}; opType={})".format(self.item, self.isOperand, self.isUnary, self.opType)
 
 class Expressionator:
-    def __init__(self, program_name, debug=False):
+    def __init__(self, program_name, symbol_table, code_generator, debug=False):
         self.program_name = program_name
         self._opStack = []
         self._postfix = []
         self._debug = debug
+        self._symbol_table = symbol_table
+        self._code_generator = code_generator
         self._finished = False
 
     def log(self, msg, end='\n'):
@@ -90,7 +92,7 @@ class Expressionator:
 
     def insertOperand(self, operand, opType):
         self.log("Inserting operand {} (type {})".format(operand, opType))
-        self._postfix.append(PostfixDatagram(operand, True, False, opType))
+        self.__postfix_add(PostfixDatagram(operand, True, False, opType))
         self.exhibit()
 
     def openParenthesis(self):
@@ -115,7 +117,20 @@ class Expressionator:
         self.exhibit()
 
     def __postfix_add(self, item):
+        self.log("Appending {} to postfix".format(item))
         self._postfix.append(item)
+        token = item.item
+        if item.isOperand:
+            if token['type'] == "snúmero":
+                self._code_generator.gera_LDC(token['lexeme'])
+            elif token['type'] == "sverdadeiro":
+                self._code_generator.gera_LDC(1) # TODO create constant value
+            elif token['type'] == "sfalso":
+                self._code_generator.gera_LDC(0) # TODO create constant value
+            else: # TODO variables and functions
+                pass
+        else:
+            self._code_generator.gera_auto(token['type'])
 
     def finish(self):
         self.log("Wrapping up postfix ({} elements left)".format(len(self._opStack)))
@@ -123,6 +138,8 @@ class Expressionator:
             _a = self._opStack.pop()
             self.__postfix_add(PostfixDatagram(_a.op, False, _a.isUnary))
         self._finished = True
+        self.log("Postfix stack = {}".format(self._postfix))
+        self.log("Code generated so far: [\n{}]".format(self._code_generator.getCode()))
 
     def validate(self):
         if not self._finished:

@@ -3,6 +3,8 @@ from ..LPDSemantics import expressionator
 from ..LPDSemantics import symbol_table
 from ..LPDSemantics import semantics_exceptions
 from ..LPDSemantics import return_mapper
+from ..LPDCodeGen import code_generator
+from ..LPDCodeGen import label_printer
 from . import syntax_exceptions
 
 class Syntax:
@@ -13,15 +15,20 @@ class Syntax:
         self._indent = 0
         self.program_name = program_name
         self.lexer = lexer
-        self.symbols = self.lexer.tokenGenerator()
+        self._symbols = self.lexer.tokenGenerator()
         self.symbol_table = symbol_table.SymbolTable(debug=debug)
         self.expressionator = None
         self.return_mapper = return_mapper.ReturnMapperWrapper()
+        self.code_generator = code_generator.LPDGenerator(debug=debug)
+        self._labels = label_printer.LabelPrinter(debug=debug).label()
+
+    def get_new_label(self):
+        return next(self._labels)
 
     def get_next_symbol(self):
         try:
             self.previous_symbol = self.current_symbol
-            self.current_symbol = next(self.symbols)
+            self.current_symbol = next(self._symbols)
             self.log('\t' * self._indent + str(self.current_symbol))
         except StopIteration:
             raise syntax_exceptions.NoMoreTokensException(
@@ -60,6 +67,7 @@ class Syntax:
         self.log("Done!")
 
     def lpd_analisa_programa(self):
+        self.code_generator.gera_START()
         self.read_and_assert_is('sprograma')
         self.read_and_assert_is('sidentificador')
         self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROG, None)
@@ -75,6 +83,8 @@ class Syntax:
                 self.current_symbol)
         except syntax_exceptions.NoMoreTokensException:
             pass # Expected
+        self.code_generator.gera_HLT()
+        self.log("Result=" + self.code_generator.getCode(end="\n\t"))
 
     def lpd_analisa_bloco(self):
         self.get_next_symbol()
@@ -170,27 +180,41 @@ class Syntax:
 
     def lpd_analisa_enquanto(self):
         _aux = self.current_symbol
+        _aux_rot1 = self.get_new_label()
+        self.code_generator.gera_NULL(label=_aux_rot1)
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
         self.validate_conditional(symbol=_aux)
         self.assert_ctype_is('sfaca')
         self.return_mapper.in_while()
+        _aux_rot2 = self.get_new_label()
+        self.code_generator.gera_JMPF(_aux_rot2)
         self.get_next_symbol()
         self.call(self.lpd_analisa_comando_simples)
         self.return_mapper.out_while()
+        self.code_generator.gera_JMP(_aux_rot1)
+        self.code_generator.gera_NULL(label=_aux_rot2)
 
     def lpd_analisa_se(self):
+        _aux_rot1 = self.get_new_label()
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
         self.validate_conditional()
+        self.code_generator.gera_JMPF(_aux_rot1)
         self.assert_ctype_is('sentao')
         self.return_mapper.in_if()
         self.get_next_symbol()
         self.call(self.lpd_analisa_comando_simples)
         if self.get_ctype() == 'ssenao':
             self.return_mapper.in_else()
+            _aux_rot2 = self.get_new_label()
+            self.code_generator.gera_JMP(_aux_rot2)
+            self.code_generator.gera_NULL(label=_aux_rot1)
             self.get_next_symbol()
             self.call(self.lpd_analisa_comando_simples)
+            self.code_generator.gera_NULL(label=_aux_rot2)
+        else:
+            self.code_generator.gera_NULL(label=_aux_rot1)
         self.return_mapper.wrap_conditional()
 
     def lpd_analisa_subrotinas(self):
@@ -237,7 +261,7 @@ class Syntax:
         self.symbol_table.outLvl()
 
     def lpd_analisa_expressao_primer(self):
-        self.expressionator = expressionator.Expressionator(self.program_name, debug=self.debug)
+        self.expressionator = expressionator.Expressionator(self.program_name, self.symbol_table, self.code_generator, debug=self.debug)
         self.call(self.lpd_analisa_expressao)
 
     def lpd_analisa_expressao(self):

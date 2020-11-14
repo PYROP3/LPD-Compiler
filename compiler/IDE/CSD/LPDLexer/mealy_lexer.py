@@ -20,7 +20,7 @@ class MealyLexer:
         self.original_program = self.working_program.split('\n')
         self.working_program = list(self.working_program)
         self.parsed_tokens = []
-        self.debug = debug
+        self.debug = False
         self.state = 'normal'
         self.last_char = ''
         self.current_token = ''
