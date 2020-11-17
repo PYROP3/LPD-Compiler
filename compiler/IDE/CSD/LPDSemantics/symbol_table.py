@@ -37,6 +37,12 @@ class SymbolDatagram:
     def getRetType(self):
         return self._sRetType
 
+    def __str__(self):
+        return "[{}] {} (level={}, rotule={}, ret={})".format(self._sType, self._sLexem, self._sLevel, self._sRot, self._sRetType)
+        
+    def __repr__(self):
+        return "[{}] {} (level={}, rotule={}, ret={})".format(self._sType, self._sLexem, self._sLevel, self._sRot, self._sRetType)
+
 class SymbolTable:
     def __init__(self, debug=False):
         self._table = []
@@ -55,15 +61,17 @@ class SymbolTable:
         self.log("Out level (currently {})".format(self._lvl))
         assert self._lvl > 0, "Level is already 0"
         self._lvl -= 1
+        return self.pop()
 
     def insert(self, lexem, stype, rotule):
-        self.log("Inserting lexem {} (type={}, rotule={})".format(lexem, stype, rotule))
+        self.log("Inserting lexem {} (type={}, rotule={}, level={})".format(lexem, stype, rotule, self._lvl))
         self._table.append(SymbolDatagram(lexem, stype, self._lvl, rotule))
 
     def pop(self):
         _pop = []
-        while self._table[-1].isType("var"):
+        while self._table[-1].isType(TYPE_VAR):
             _pop.append(self._table.pop())
+        self.log("Popping {} from symbol table".format(_pop))
         return _pop
 
     def get(self, index):
@@ -79,6 +87,7 @@ class SymbolTable:
         _aux = [symb for symb in self._table if symb.getLevel() == self._lvl]
         for i in reversed(range(len(_aux))):
             if matcher(_aux[i]):
+                self.log("Matcher success for {}".format(_aux[i]))
                 return i
         return None
 
@@ -97,8 +106,9 @@ class SymbolTable:
     def pesquisa_declfunc(self, lexema):
         return self._find(lambda symb: symb.isFunc() and symb.isLexem(lexema))
 
-    def pesquisa_duplicvar(self, lexema):
-        return self._findCurrent(lambda symb: symb.isVar() and symb.isLexem(lexema))
+    def pesquisa_duplicvar(self, lexema, nivel=None):
+        nivel = nivel or self._lvl
+        return self._findCurrent(lambda symb: symb.isVar() and symb.isLexem(lexema) and symb.getLevel() == nivel)
 
     def coloca_tipo_tabela(self, tipo):
         self.log("Setting type {}".format(tipo))

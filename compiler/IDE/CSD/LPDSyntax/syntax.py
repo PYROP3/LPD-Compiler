@@ -5,6 +5,7 @@ from ..LPDSemantics import semantics_exceptions
 from ..LPDSemantics import return_mapper
 from ..LPDCodeGen import code_generator
 from ..LPDCodeGen import label_printer
+from ..LPDCodeGen import mem_manager
 from . import syntax_exceptions
 
 class Syntax:
@@ -21,6 +22,7 @@ class Syntax:
         self.return_mapper = return_mapper.ReturnMapperWrapper()
         self.code_generator = code_generator.LPDGenerator(debug=debug)
         self._labels = label_printer.LabelPrinter(debug=debug).label()
+        self.mem_manager = mem_manager.StackManager(self.code_generator)
 
     def get_new_label(self):
         return next(self._labels)
@@ -87,10 +89,12 @@ class Syntax:
         self.log("Result=" + self.code_generator.getCode(end="\n\t"))
 
     def lpd_analisa_bloco(self):
+        self.mem_manager.new_context()
         self.get_next_symbol()
         self.call(self.lpd_analisa_et_variaveis)
         self.call(self.lpd_analisa_subrotinas)
         self.call(self.lpd_analisa_comandos)
+        self.mem_manager.pop_context()
 
     def lpd_analisa_et_variaveis(self):
         if self.get_ctype() == 'svar':
@@ -101,10 +105,12 @@ class Syntax:
                 self.get_next_symbol()
 
     def lpd_analisa_variaveis(self):
+        _count = 0
         while (True):
             self.assert_ctype_is('sidentificador')
             self.tabela_pesquisa_duplicvar()
             self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_VAR, None)
+            _count += 1
             self.get_next_symbol()
             self.assert_ctype_in(['svírgula', 'sdoispontos'])
             if self.get_ctype() == 'svírgula':
@@ -113,6 +119,7 @@ class Syntax:
                     self.throw_expected_anything_else('sdoispontos')
             if self.get_ctype() == 'sdoispontos':
                 break
+        self.mem_manager.add_to_current(_count)
         self.get_next_symbol()
         self.call(self.lpd_analisa_tipo)
 

@@ -12,6 +12,9 @@ PREC_COMPARE = 2
 PREC_AND = 1
 PREC_OR = 0
 
+CONSTANT_TRUE = 1
+CONSTANT_FALSE = 0
+
 operatorRequirements = {
     'smenos': ('inteiro', 'inteiro'),
     'smais': ('inteiro', 'inteiro'),
@@ -124,9 +127,9 @@ class Expressionator:
             if token['type'] == "snúmero":
                 self._code_generator.gera_LDC(token['lexeme'])
             elif token['type'] == "sverdadeiro":
-                self._code_generator.gera_LDC(1) # TODO create constant value
+                self._code_generator.gera_LDC(CONSTANT_TRUE)
             elif token['type'] == "sfalso":
-                self._code_generator.gera_LDC(0) # TODO create constant value
+                self._code_generator.gera_LDC(CONSTANT_FALSE)
             else: # TODO variables and functions
                 pass
         else:
