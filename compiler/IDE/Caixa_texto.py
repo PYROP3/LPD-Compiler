@@ -25,6 +25,8 @@ class TextLineNumbers(tk.Canvas):
 class IndexedText(tk.Text):
     def __init__(self, *args, **kwargs):
         tk.Text.__init__(self, height = 25, *args, **kwargs)
+        self.linha_erro = -1
+        self.result = 0
 
         # create a proxy for the underlying widget
         self._orig = self._w + "_orig"
@@ -34,7 +36,12 @@ class IndexedText(tk.Text):
     def _proxy(self, *args):
         # let the actual widget perform the requested action
         cmd = (self._orig,) + args
-        result = self.tk.call(cmd)
+        try:
+            self.result = self.tk.call(cmd)
+        except:
+            pass
+        
+
 
         # generate an event if something was added or deleted,
         # or the cursor position changed
@@ -48,7 +55,7 @@ class IndexedText(tk.Text):
             self.event_generate("<<Change>>", when="tail")
 
         # return what the actual widget returned
-        return result
+        return self.result
 
 class IndexedTextWrapper(tk.Frame):
     def __init__(self, main):
@@ -69,6 +76,9 @@ class IndexedTextWrapper(tk.Frame):
 
 
     def _on_change(self, event):
+        if self.text.linha_erro != -1:
+            self.text.tag_remove('erro','1.0', 'end')
+            self.text.linha_erro = -1
         self.linenumbers.redraw()
 
         

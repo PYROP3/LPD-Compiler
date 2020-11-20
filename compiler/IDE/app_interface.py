@@ -16,7 +16,7 @@ class Tela():
         self.root.geometry("1200x650")
 
         self.file_manager = file_manager.FileManager()
-        self.linha_erro = -1
+        
         #Create frame
 
         self.main_frame = Frame(self.root)
@@ -24,12 +24,14 @@ class Tela():
         self.frame_text = Caixa_texto.IndexedTextWrapper(self.main_frame)
         self.text = self.frame_text.text
         self.frame_text.pack(side="top", fill="both", expand=True)
+        self.text.linha_erro = -1
 
         self.console_frame = Frame(self.root)
         self.console_frame.pack(fill="both", pady=5)
 
+        self.text.bind_all("<<Change>>", self.cb_on_change)
         self.text.bind_all('<<Modified>>', self.cb_on_text_update)    
-        self.text.tag_configure("erro", background="red")
+        self.text.tag_configure("erro", background="coral1")
         #Create scrollbar
         #text_scroll = Scrollbar(main_frame)
         #text_scroll.pack(side=RIGHT, fill=Y)
@@ -81,6 +83,13 @@ class Tela():
         self.root.bind('<Control-o>', lambda event: self.cb_menu_open())
         self.root.bind('<Control-n>', lambda event: self.cb_menu_new())
         self.root.bind('<Control-r>', lambda event: self.cb_menu_compile())
+        self.root.bind('<Control-c>', lambda event: "<<Copy>>")
+        self.root.bind('<Control-v>', lambda event: "<<Paste>>")
+
+    def cb_on_change(self, event):
+        if self.text.linha_erro != -1:
+            self.text.tag_remove('erro','1.0', 'end')
+            self.text.linha_erro = -1
 
     def cb_menu_compile(self):
         # Save file
@@ -92,9 +101,9 @@ class Tela():
 
         # Execute
         try:
-            if self.linha_erro != -1:
-                self.text.tag_remove('erro', str(self.linha_erro+1) + '.0', str(self.linha_erro+2) + '.0')
-                self.linha_erro = -1
+            if self.text.linha_erro != -1:
+                self.text.tag_remove('erro', '1.0', 'end')
+                self.text.linha_erro = -1
             _compiler.run()
         except lpd_exceptions.LPDException as e:
             # TODO write to errors window
@@ -102,7 +111,7 @@ class Tela():
             self.text_console.insert("end", str(e) + '\n')
             self.text_console.config(state="disabled")
             self.text.tag_add('erro', str(e.line+1) + '.0', str(e.line + 2) + '.0')
-            self.linha_erro = e.line
+            self.text.linha_erro = e.line
             #Text(text_ide, backgrount=('red').grid(line=e.line))
             #print(e)
 
@@ -152,9 +161,9 @@ class Tela():
 
         # Update window title
         self.update_title(self.file_manager.working_filename, self.file_manager.is_edited)
-        if self.linha_erro != -1:
-            self.text.tag_remove('erro', str(self.linha_erro+1) + '.0', str(self.linha_erro+2) + '.0')
-            self.linha_erro = -1
+        if self.text.linha_erro != -1:
+            self.text.tag_remove('erro','1.0', 'end')
+            self.text.linha_erro = -1
 
         return True
 
@@ -168,9 +177,9 @@ class Tela():
         # Update window title
         self.update_title(self.file_manager.working_filename, self.file_manager.is_edited)
 
-        if self.linha_erro != -1:
-            self.text.tag_remove('erro', str(self.linha_erro+1) + '.0', str(self.linha_erro+2) + '.0')
-            self.linha_erro = -1
+        if self.text.linha_erro != -1:
+            self.text.tag_remove('erro','1.0', 'end')
+            self.text.linha_erro = -1
             
         return True
 
