@@ -1,8 +1,8 @@
 class LabelPrinter:
-    def __init__(self, prefix="L", debug=False):
+    def __init__(self, prefix="L", initial=1, debug=False):
         self.prefix = prefix
         self.debug = debug
-        self.it = 0
+        self.it = initial
 
     def label(self):
         while True:

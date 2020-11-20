@@ -130,8 +130,15 @@ class Expressionator:
                 self._code_generator.gera_LDC(CONSTANT_TRUE)
             elif token['type'] == "sfalso":
                 self._code_generator.gera_LDC(CONSTANT_FALSE)
-            else: # TODO variables and functions
-                pass
+            else:
+                _idx = self._symbol_table.pesquisa_tabela(token['lexeme'])
+                symbol = self._symbol_table.get(_idx)
+                if symbol.isVar():
+                    self._code_generator.gera_LDV(symbol.getRotule())
+                elif symbol.isFunc():
+                    self._code_generator.gera_CALL(symbol.getRotule())
+                else:
+                    raise Exception("Oops: {}".format(symbol))
         else:
             self._code_generator.gera_auto(token['type'])
 

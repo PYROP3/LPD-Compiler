@@ -1,5 +1,22 @@
 from .instructions import *
 
+class LPDCommand:
+    def __init__(self, label, op, param1, param2):
+        self.label = label
+        self.op = op
+        self.param1 = param1
+        self.param2 = param2
+
+    def __str__(self):
+        return "{}\t{}\t{}\t{}".format(self.label, self.op, self.param1, self.param2)
+
+    def __repr__(self):
+        return "<LPDCommand> [{}]\t[{}]\t[{}]\t[{}]".format(self.label, self.op, self.param1, self.param2)
+
+    def getFormatted(self, sep='\t'):
+        paramString = "{},{}".format(self.param1, self.param2) if self.param2 != "" else self.param1
+        return sep.join([str(x) for x in [self.label, self.op, paramString] if x != ""])
+
 class LPDGenerator:
     def __init__(self, sep='\t', debug=False):
         self.debug = debug
@@ -10,7 +27,7 @@ class LPDGenerator:
         return self.buffer
 
     def getCode(self, end='\n'):
-        return end.join(self.buffer)
+        return end.join([cmd.getFormatted() for cmd in self.buffer])
 
     def log(self, line, end='\n'):
         if (self.debug):
@@ -34,10 +51,9 @@ class LPDGenerator:
         }[opType]
 
     def gera(self, funcao, label="", param1="", param2=""):
-        paramString = "{},{}".format(param1, param2) if param2 != "" else param1
-        newline = self.sep.join([str(x) for x in [label, funcao, paramString] if x != ""])
-        self.log("Generated: [{}]".format(newline))
-        self.buffer.append(newline)
+        _cmd = LPDCommand(label, funcao, param1, param2)
+        self.log("Generated: [{}]".format(_cmd))
+        self.buffer.append(_cmd)
 
     def gera_auto(self, funcao, label="", param1="", param2=""):
         instr = self.getInstruction(funcao)

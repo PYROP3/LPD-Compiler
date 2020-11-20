@@ -9,6 +9,7 @@ from tkinter import Tk, StringVar, END, IntVar, Label, Checkbutton, ttk
 import threading
 import _thread
 import sys
+import argparse
 
 PROJECT_PATH = os.path.dirname(__file__)
 PROJECT_UI = os.path.join(PROJECT_PATH, "emulador.ui")
@@ -29,7 +30,7 @@ def importProgramFile(file_path):
     return [line.rstrip() for line in fd.readlines()]
 
 class VmApp:
-    def __init__(self):
+    def __init__(self, filename=None):
         self.builder = builder = pygubu.Builder()
         builder.add_resource_path(PROJECT_PATH)
         builder.add_from_file(PROJECT_UI)
@@ -77,6 +78,14 @@ class VmApp:
                             'sticky': 'nswe'})], 'sticky': 'nswe'})],
                             'border':'6', 'sticky': 'nswe'})])
         self.estyle.configure("EntryStyle.TEntry", fieldbackground=colorScheme["defaultEntryBg"], bordercolor=colorScheme["defaultEntryBc"])
+
+        if filename is not None:
+            prog = importProgramFile(filename)
+            print("Prog = {}".format(prog))
+            self._vm.loadProgram([line.split() for line in prog])
+            self.writeProgramField(self.builder.get_object("frame_code"), prog, highlight=0)
+            self._enableControls()
+            print("Done!")
 
     def shutdown(self):
         self._vm._shutdown()
@@ -126,6 +135,7 @@ class VmApp:
         print("Loading [{}]".format(file_path))
         try:
             prog = importProgramFile(file_path)
+            print("Prog = {}".format(prog))
             self._vm.loadProgram([line.split() for line in prog])
             self.writeProgramField(self.builder.get_object("frame_code"), prog, highlight=0)
             self._enableControls()
@@ -182,7 +192,7 @@ class VmApp:
             Checkbutton(self.programScrollFrame.viewPort, relief=tableRelief, bg=_bg, variable=_var).grid(row=_lineNo+1, column=0, sticky="snew")
             Label(self.programScrollFrame.viewPort, text=str(_lineNo + 1), relief=tableRelief, bg=_bg).grid(row=_lineNo+1, column=1, sticky="snew")
 
-            for idx, token in enumerate(self.parseLine(pLine.split(" "))):
+            for idx, token in enumerate(self.parseLine(pLine.split())):
                 Label(self.programScrollFrame.viewPort, text=token, relief=tableRelief, bg=_bg).grid(row=_lineNo+1, column=2+idx, sticky="snew")
 
         self.programScrollFrame.pack(side="top", fill="both", expand=True)
@@ -208,10 +218,10 @@ class VmApp:
         for idx, contents in enumerate(newStack):
             try:
                 if contents != self._prevStack[idx]:
-                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=str(f'{contents:.2e}') if len(contents) > 6 else str(contents))
+                    self.memScrollFrame.viewPort.grid_slaves(row=idx+1, column=1)[0].config(text=str(f'{contents:.2e}') if len(str(contents)) > 6 else str(contents))
             except IndexError:
                 Label(self.memScrollFrame.viewPort, text=str(idx), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=0, sticky="snew")
-                Label(self.memScrollFrame.viewPort,text=str(f'{contents:.2e}') if len(contents) > 6 else str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
+                Label(self.memScrollFrame.viewPort,text=str(f'{contents:.2e}') if len(str(contents)) > 6 else str(contents), relief=tableRelief, bg=colorScheme["defaultBg"]).grid(row=idx+1, column=1, sticky="snew")
         self._prevStack = newStack[:]
 
         if self.__prevS:
@@ -309,5 +319,11 @@ class VmApp:
             self.builder.get_object("button_"+obj).config(state = "normal" if _d[obj] else "disabled")
         
 if __name__ == '__main__':
-    app = VmApp()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('arquivo', help="Arquivo-fonte a ser importado", type=str, default=None)
+    args = parser.parse_args()
+    print("Got args = " + str(args))
+    app = VmApp(args.arquivo)
     app.run()
+
+print("Test")

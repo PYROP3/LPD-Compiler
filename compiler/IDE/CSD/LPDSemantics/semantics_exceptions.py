@@ -54,5 +54,5 @@ class DuplicatedFunctionException(DuplicatedSymbolException):
 class UndeclaredSymbolException(SemanticsException):
     def __init__(self, program_name, line, col, symbol, stype='symbol'):
         self.symbol = symbol
-        self.message = "error: {} {} used without being declared".format(stype, symbol)
+        self.message = "error: {} '{}' used without being declared".format(stype, symbol)
         super().__init__(program_name, line, col, msg=self.message)

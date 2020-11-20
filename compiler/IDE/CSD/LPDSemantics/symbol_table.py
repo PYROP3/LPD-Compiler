@@ -31,6 +31,12 @@ class SymbolDatagram:
     def getLevel(self):
         return self._sLevel
 
+    def setRotule(self, srot):
+        self._sRot = srot
+
+    def getRotule(self):
+        return self._sRot
+
     def setRetType(self, sret):
         self._sRetType = sret
 
@@ -48,6 +54,12 @@ class SymbolTable:
         self._table = []
         self._lvl = 0
         self._debug = debug
+
+    def __str__(self):
+        return "[Symbol Table]:\n\t{}".format('\n\t'.join(self._table))
+
+    def __repr__(self):
+        return "[Symbol Table (lvl={}, debug={})]:\n\t{}".format(self._lvl, self._debug, '\n\t'.join([str(item) for item in self._table]))
 
     def log(self, msg, end='\n'):
         if self._debug:
@@ -76,6 +88,11 @@ class SymbolTable:
 
     def get(self, index):
         return self._table[index]
+
+    def register_rotules(self, rotules):
+        for _i in range(-1, -1*(len(rotules) + 1), -1):
+            self.log("Setting rotule {} for item {}".format(rotules[_i], self._table[_i]))
+            self._table[_i].setRotule(rotules[_i])
 
     def _find(self, matcher):
         for i in reversed(range(len(self._table))):

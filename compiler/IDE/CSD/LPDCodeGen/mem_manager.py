@@ -12,6 +12,7 @@ class StackManager:
         self.stack[-1].append(n)
         self.code_generator.gera_ALLOC(self.acc, n)
         self.acc += n
+        return [self.acc - n + i for i in range(n)]
 
     def pop_context(self):
         _ctx = self.stack.pop()

@@ -7,6 +7,11 @@ import Caixa_texto
 import file_manager
 from CSD import compiler
 from CSD.LPDExceptions import lpd_exceptions
+import subprocess
+import os.path
+
+VM_APP_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "vm", "emulador.py")
+print("Emulador: " + VM_APP_DIRECTORY)
 
 class Tela():
     def create_ui(self):
@@ -14,6 +19,8 @@ class Tela():
         self.root.title('LPD Editor')
         self.root.iconbitmap()
         self.root.geometry("1200x650")
+
+        self._subp = None
 
         self.file_manager = file_manager.FileManager()
         
@@ -96,24 +103,39 @@ class Tela():
         if not self.cb_menu_save():
             return
 
+        # Clear error log
+        self.console_clear()
+
+        # Remove VM screen
+        if self._subp is not None:
+            self._subp.kill()
+            self._subp = None
+
         # Create compiler object
         _compiler = compiler.Compiler(self.file_manager.working_filename, debug=True)
 
         # Execute
+        _objfile = None
         try:
             if self.text.linha_erro != -1:
                 self.text.tag_remove('erro', '1.0', 'end')
                 self.text.linha_erro = -1
-            _compiler.run()
+            _objfile = _compiler.run()
+            self.console_log("Sucesso!")
         except lpd_exceptions.LPDException as e:
             # TODO write to errors window
-            self.text_console.config(state="normal")
-            self.text_console.insert("end", str(e) + '\n')
-            self.text_console.config(state="disabled")
+            self.console_log(str(e))
             self.text.tag_add('erro', str(e.line+1) + '.0', str(e.line + 2) + '.0')
             self.text.linha_erro = e.line
             #Text(text_ide, backgrount=('red').grid(line=e.line))
             #print(e)
+
+        if _objfile is not None:
+            if self._subp is not None:
+                self._subp.kill()
+            self._subp = subprocess.Popen(["py", VM_APP_DIRECTORY, _objfile], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("Opened subprocess: " + str(self._subp))
+            #print(_p.communicate())
 
     def cb_menu_new(self):
         if self.file_manager.is_edited:
@@ -194,6 +216,18 @@ class Tela():
 
         # Reset event
         # self.text_ide.bind_all('<<Modified>>', self.cb_on_text_update)
+
+    def do_console(self, action):
+        self.text_console.config(state="normal")
+        action()
+        self.text_console.config(state="disabled")
+
+    def console_clear(self):
+        self.do_console(lambda: self.text_console.delete("1.0", tk.END))
+
+    def console_log(self, text, end='\n'):
+        self.do_console(lambda: self.text_console.insert("end", str(text) + end))
+        
 
 if __name__ == '__main__':
     app = Tela()

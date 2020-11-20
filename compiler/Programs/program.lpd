@@ -2,12 +2,26 @@ programa test;
 var v, valor: inteiro;
     i,max, juro: inteiro;
 funcao teste: inteiro;
+var v: inteiro;
 inicio
-	teste:=v;
-
+	se verdadeiro
+	entao
+		teste:=3 * (valor * v) + 4
+	senao
+		teste:=4
+fim;
+procedimento proc;
+var v, b: booleano;
+inicio
+	valor := teste;
+	se v e verdadeiro
+	entao
+		valor:=5
+	senao
+		v:=falso
 fim;
 início
-    enquanto v != -1
+    enquanto v < 5 + 4
     faca
     início
         {leia o valor inicial}
@@ -28,6 +42,41 @@ início
     fim
 fim.
 {123}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

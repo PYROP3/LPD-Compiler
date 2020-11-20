@@ -7,6 +7,10 @@ from ..LPDCodeGen import code_generator
 from ..LPDCodeGen import label_printer
 from ..LPDCodeGen import mem_manager
 from . import syntax_exceptions
+import os.path
+import re
+
+FILETYPE_OBJ = "lpdo"
 
 class Syntax:
     def __init__(self, program_name, debug=False, lexer=None):
@@ -23,6 +27,7 @@ class Syntax:
         self.code_generator = code_generator.LPDGenerator(debug=debug)
         self._labels = label_printer.LabelPrinter(debug=debug).label()
         self.mem_manager = mem_manager.StackManager(self.code_generator)
+        self._objfile = None
 
     def get_new_label(self):
         return next(self._labels)
@@ -64,9 +69,23 @@ class Syntax:
         self.log('\t' * self._indent + "<<< LPD: " + method.__name__)
         self._indent -= 1
 
+    def commit_program(self):
+        direc, prog = os.path.split(self.program_name)
+        filename = re.match(r'(.+)\..+?$', prog).group(1)
+        _path = os.path.join(direc, "{}.{}".format(filename, FILETYPE_OBJ))
+        self.log("Writing obj to '{}'...".format(_path), end='')
+        with open(_path, 'w') as f:
+            f.write(self.code_generator.getCode())
+        self._objfile = _path
+        self.log("done!")
+
+    def getObjFile(self):
+        return self._objfile
+
     def run(self):
         self.call(self.lpd_analisa_programa)
         self.log("Done!")
+        self.commit_program()
 
     def lpd_analisa_programa(self):
         self.code_generator.gera_START()
@@ -86,7 +105,7 @@ class Syntax:
         except syntax_exceptions.NoMoreTokensException:
             pass # Expected
         self.code_generator.gera_HLT()
-        self.log("Result=" + self.code_generator.getCode(end="\n\t"))
+        self.log("Result=\n\t" + '\n\t'.join([str(cmd) for cmd in self.code_generator.getCodeArray()]))
 
     def lpd_analisa_bloco(self):
         self.mem_manager.new_context()
@@ -103,6 +122,7 @@ class Syntax:
                 self.call(self.lpd_analisa_variaveis)
                 self.assert_ctype_is('sponto_vírgula')
                 self.get_next_symbol()
+        self.log(repr(self.symbol_table))
 
     def lpd_analisa_variaveis(self):
         _count = 0
@@ -119,7 +139,8 @@ class Syntax:
                     self.throw_expected_anything_else('sdoispontos')
             if self.get_ctype() == 'sdoispontos':
                 break
-        self.mem_manager.add_to_current(_count)
+        _idxs = self.mem_manager.add_to_current(_count)
+        self.symbol_table.register_rotules(_idxs)
         self.get_next_symbol()
         self.call(self.lpd_analisa_tipo)
 
@@ -170,19 +191,27 @@ class Syntax:
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
         self.tabela_pesquisa_declvar()
+        _index = self.symbol_table.pesquisa_tabela(self.get_clexem())
+        _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
+        self.code_generator.gera_RD()
+        self.code_generator.gera_STR(_rot)
         self.get_next_symbol()
 
     def lpd_analisa_escreva(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        if self.symbol_table.pesquisa_declvarfunc(self.get_clexem()) == None:
+        if self.symbol_table.pesquisa_declvarfunc(self.get_clexem()) == None: # TODO é permitido escreva(funcao)?
             raise semantics_exceptions.UndeclaredSymbolException(
                 self.program_name,
                 self.current_symbol['line'],
                 self.current_symbol['col'],
                 self.current_symbol['lexeme'])
+        _index = self.symbol_table.pesquisa_tabela(self.get_clexem())
+        _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
+        self.code_generator.gera_LDV(_rot)
+        self.code_generator.gera_PRN()
         self.get_next_symbol()
 
     def lpd_analisa_enquanto(self):
@@ -239,9 +268,15 @@ class Syntax:
         self.read_and_assert_is('sidentificador')
         self.symbol_table.inLvl()
         self.tabela_pesquisa_declproc()
-        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROC, None)
+        _aux_rot1 = self.get_new_label()
+        _aux_rot2 = self.get_new_label()
+        self.code_generator.gera_JMP(_aux_rot2)
+        self.code_generator.gera_NULL(_aux_rot1)
+        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROC, _aux_rot1)
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
+        self.code_generator.gera_RETURN()
+        self.code_generator.gera_NULL(_aux_rot2)
         self.symbol_table.outLvl()
 
     def lpd_analisa_declaracao_funcao(self):
@@ -249,7 +284,11 @@ class Syntax:
         _aux_symbol = self.current_symbol
         self.symbol_table.inLvl()
         self.tabela_pesquisa_declfunc()
-        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_FUNC, None)
+        _aux_rot1 = self.get_new_label()
+        _aux_rot2 = self.get_new_label()
+        self.code_generator.gera_JMP(_aux_rot2)
+        self.code_generator.gera_NULL(_aux_rot1)
+        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_FUNC, _aux_rot1)
         self.return_mapper.push(self.get_clexem())
         self.read_and_assert_is('sdoispontos')
         self.get_next_symbol()
@@ -257,14 +296,13 @@ class Syntax:
         self.symbol_table.setLastRetType({'sinteiro':'inteiro', 'sbooleano':'booleano'}[self.get_ctype()])
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
-        # self.get_next_symbol()
-        # if self.get_ctype() == 'sponto_vírgula':
-        #     self.call(self.lpd_analisa_bloco)
         if self.return_mapper.pop().validate_end() == False:
             raise semantics_exceptions.NonDeterministicFunctionException(
                 self.program_name,
                 _aux_symbol['line'],
                 _aux_symbol['col'])
+        self.code_generator.gera_RETURN()
+        self.code_generator.gera_NULL(_aux_rot2)
         self.symbol_table.outLvl()
 
     def lpd_analisa_expressao_primer(self):
@@ -346,9 +384,19 @@ class Syntax:
                 _expectedReturnType, 
                 _actualReturnType)
         self.return_mapper.try_ret(_aux_symbol['lexeme'])
+        self.code_generator.gera_STR(self.symbol_table.get(_index).getRotule())
 
     def lpd_analisa_chprocedimento(self):
-        pass
+        _aux_symbol = self.previous_symbol
+        _index = self.symbol_table.pesquisa_tabela(_aux_symbol['lexeme'])
+        if _index == None:
+            raise semantics_exceptions.UndeclaredSymbolException(
+                self.program_name,
+                _aux_symbol['line'],
+                _aux_symbol['col'],
+                _aux_symbol['lexeme'])
+        _rot = self.symbol_table.get(_index).getRotule()
+        self.code_generator.gera_CALL(_rot)
 
     def lpd_analisa_chfuncao(self):
         self.assert_ctype_is('sidentificador')

@@ -1,0 +1,36 @@
+programa exemplo6;
+	var x, y: inteiro;
+	procedimento p;
+		var z: inteiro;
+	início
+		z:= x; x:=x-1;
+		se z>1 entao p
+			senao y:=1;
+		y:=y*z
+	fim { p };
+início
+	leia(x);
+	p;
+	escreva (y);
+	escreva (x)
+fim.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

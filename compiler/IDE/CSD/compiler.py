@@ -18,6 +18,7 @@ class Compiler:
     def run(self, debug=False):
         try:
             self.syntax.run()
+            return self.syntax.getObjFile()
         except UnexpectedEOFException as e:
             raise InformalEndException(
                 e.program_name,
