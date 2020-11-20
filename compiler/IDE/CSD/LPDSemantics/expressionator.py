@@ -15,6 +15,8 @@ PREC_OR = 0
 CONSTANT_TRUE = 1
 CONSTANT_FALSE = 0
 
+MEM_RETURN_POS = 0
+
 operatorRequirements = {
     'smenos': ('inteiro', 'inteiro'),
     'smais': ('inteiro', 'inteiro'),
@@ -137,6 +139,7 @@ class Expressionator:
                     self._code_generator.gera_LDV(symbol.getRotule())
                 elif symbol.isFunc():
                     self._code_generator.gera_CALL(symbol.getRotule())
+                    self._code_generator.gera_LDV(MEM_RETURN_POS)
                 else:
                     raise Exception("Oops: {}".format(symbol))
         else:

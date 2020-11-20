@@ -19,6 +19,8 @@ class ReturnMapperWrapper:
         if len(self.returnMappers) > 0:
             if self.functionNames[-1] == variable_name:
                 self.returnMappers[-1].ret()
+                return True
+        return False
 
     def in_while(self):
         if len(self.returnMappers) > 0:

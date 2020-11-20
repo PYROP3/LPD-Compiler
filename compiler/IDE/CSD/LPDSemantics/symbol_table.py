@@ -37,6 +37,9 @@ class SymbolDatagram:
     def getRotule(self):
         return self._sRot
 
+    def getType(self):
+        return self._sType
+
     def setRetType(self, sret):
         self._sRetType = sret
 
@@ -112,20 +115,23 @@ class SymbolTable:
         return self._find(lambda symb: symb.isLexem(lexema))
 
     def pesquisa_declvar(self, lexema):
-        return self._find(lambda symb: symb.isVar() and symb.isLexem(lexema))
+        return self._find(lambda symb: symb.isLexem(lexema))
 
     def pesquisa_declvarfunc(self, lexema):
         return self._find(lambda symb: (symb.isVar() or symb.isFunc()) and symb.isLexem(lexema))
 
     def pesquisa_declproc(self, lexema):
+        return self._find(lambda symb: symb.isLexem(lexema))
+
+    def pesquisa_existeproc(self, lexema):
         return self._find(lambda symb: symb.isProc() and symb.isLexem(lexema))
 
     def pesquisa_declfunc(self, lexema):
-        return self._find(lambda symb: symb.isFunc() and symb.isLexem(lexema))
+        return self._find(lambda symb: symb.isLexem(lexema))
 
     def pesquisa_duplicvar(self, lexema, nivel=None):
         nivel = nivel or self._lvl
-        return self._findCurrent(lambda symb: symb.isVar() and symb.isLexem(lexema) and symb.getLevel() == nivel)
+        return self._findCurrent(lambda symb: symb.isLexem(lexema) and symb.getLevel() == nivel)
 
     def coloca_tipo_tabela(self, tipo):
         self.log("Setting type {}".format(tipo))

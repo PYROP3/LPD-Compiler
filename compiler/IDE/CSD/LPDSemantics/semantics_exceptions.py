@@ -56,3 +56,9 @@ class UndeclaredSymbolException(SemanticsException):
         self.symbol = symbol
         self.message = "error: {} '{}' used without being declared".format(stype, symbol)
         super().__init__(program_name, line, col, msg=self.message)
+
+class UnexpectedTypeException(SemanticsException):
+    def __init__(self, program_name, line, col, symbol, expectedType, symbolType='symbol'):
+        self.symbol = symbol
+        self.message = "error: {} '{}' found but expected a {} instead".format(symbolType, symbol, expectedType)
+        super().__init__(program_name, line, col, msg=self.message)

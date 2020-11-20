@@ -11,6 +11,7 @@ import os.path
 import re
 
 FILETYPE_OBJ = "lpdo"
+MEM_RETURN_POS = 0
 
 class Syntax:
     def __init__(self, program_name, debug=False, lexer=None):
@@ -89,6 +90,8 @@ class Syntax:
 
     def lpd_analisa_programa(self):
         self.code_generator.gera_START()
+        self.mem_manager.set_intent(False)
+        self.mem_manager.add_to_current(1) # Return value for functions
         self.read_and_assert_is('sprograma')
         self.read_and_assert_is('sidentificador')
         self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROG, None)
@@ -258,8 +261,10 @@ class Syntax:
             pass
         while self.get_ctype() in ['sprocedimento', 'sfuncao']:
             if self.get_ctype() == 'sprocedimento':
+                self.mem_manager.set_intent(False)
                 self.call(self.lpd_analisa_declaracao_procedimento)
             else:
+                self.mem_manager.set_intent(True)
                 self.call(self.lpd_analisa_declaracao_funcao)
             self.assert_ctype_is('sponto_vírgula')
             self.get_next_symbol()
@@ -301,7 +306,7 @@ class Syntax:
                 self.program_name,
                 _aux_symbol['line'],
                 _aux_symbol['col'])
-        self.code_generator.gera_RETURN()
+        # self.code_generator.gera_RETURN()
         self.code_generator.gera_NULL(_aux_rot2)
         self.symbol_table.outLvl()
 
@@ -383,18 +388,31 @@ class Syntax:
                 _aux_symbol['col'],
                 _expectedReturnType, 
                 _actualReturnType)
-        self.return_mapper.try_ret(_aux_symbol['lexeme'])
-        self.code_generator.gera_STR(self.symbol_table.get(_index).getRotule())
+        if self.return_mapper.try_ret(_aux_symbol['lexeme']):
+            self.code_generator.gera_STR(MEM_RETURN_POS)
+            self.mem_manager.just_dalloc()
+            self.code_generator.gera_RETURN()
+        else:
+            self.code_generator.gera_STR(self.symbol_table.get(_index).getRotule())
 
     def lpd_analisa_chprocedimento(self):
         _aux_symbol = self.previous_symbol
-        _index = self.symbol_table.pesquisa_tabela(_aux_symbol['lexeme'])
-        if _index == None:
+        _index_aux = self.symbol_table.pesquisa_tabela(_aux_symbol['lexeme'])
+        if _index_aux == None:
             raise semantics_exceptions.UndeclaredSymbolException(
                 self.program_name,
                 _aux_symbol['line'],
                 _aux_symbol['col'],
                 _aux_symbol['lexeme'])
+        _index = self.symbol_table.pesquisa_existeproc(_aux_symbol['lexeme'])
+        if _index == None:
+            raise semantics_exceptions.UnexpectedTypeException(
+                self.program_name,
+                _aux_symbol['line'],
+                _aux_symbol['col'],
+                _aux_symbol['lexeme'],
+                symbol_table.TYPE_PROC,
+                self.symbol_table.get(_index_aux).getType())
         _rot = self.symbol_table.get(_index).getRotule()
         self.code_generator.gera_CALL(_rot)
 

@@ -4,16 +4,37 @@ programa exemplo6;
 		var z: inteiro;
 	início
 		z:= x; x:=x-1;
+		z;
 		se z>1 entao p
 			senao y:=1;
 		y:=y*z
 	fim { p };
+	funcao f: inteiro;
+		var z: inteiro;
+	início
+		se x > y entao
+			f := 0
+		senao
+		início
+			z := 10;
+			f := 1;
+		fim;
+	fim { f };
 início
 	leia(x);
 	p;
 	escreva (y);
 	escreva (x)
 fim.
+
+
+
+
+
+
+
+
+
 
 
 
