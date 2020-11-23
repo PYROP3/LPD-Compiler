@@ -25,8 +25,9 @@ class TextLineNumbers(tk.Canvas):
 class IndexedText(tk.Text):
     def __init__(self, *args, **kwargs):
         tk.Text.__init__(self, height = 25, *args, **kwargs)
-        self.linha_erro = -1
         self.result = 0
+        self.escreveu = False
+        self.cursor = self.index(tk.INSERT)
 
         # create a proxy for the underlying widget
         self._orig = self._w + "_orig"
@@ -54,6 +55,9 @@ class IndexedText(tk.Text):
         ):
             self.event_generate("<<Change>>", when="tail")
 
+        if (args[0] in ("insert", "replace", "delete")):
+            self.escreveu = True
+
         # return what the actual widget returned
         return self.result
 
@@ -76,10 +80,11 @@ class IndexedTextWrapper(tk.Frame):
 
 
     def _on_change(self, event):
-        if self.text.linha_erro != -1:
+        if self.text.escreveu:
             self.text.tag_remove('erro','1.0', 'end')
-            self.text.linha_erro = -1
+            self.text.escreveu = False
         self.linenumbers.redraw()
+        self.text.cursor = self.text.index(tk.INSERT)
 
         
 if __name__ == "__main__":

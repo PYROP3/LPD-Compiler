@@ -36,8 +36,7 @@ class Tela():
         self.console_frame = Frame(self.root)
         self.console_frame.pack(fill="both", pady=5)
 
-        self.text.bind_all("<<Change>>", self.cb_on_change)
-        self.text.bind_all('<<Modified>>', self.cb_on_text_update)    
+        self.text.bind_all('<<Modified>>', self.cb_on_text_update)   
         self.text.tag_configure("erro", background="coral1")
         #Create scrollbar
         #text_scroll = Scrollbar(main_frame)
@@ -74,16 +73,12 @@ class Tela():
         self.compilador_menu.add_command(label="Compilar", command=self.cb_menu_compile)
 
         #Add index_bar - Linha/Coluna
+        
         self.index_bar = Label(self.root, text='Ln ' + str(0) + ' | Col ' + str(0), anchor=E)
         self.index_bar.pack(fill=X, side=BOTTOM, ipady=5)
 
         self.setup_shortcuts()
         self.root.mainloop()
-
-    def check_pos(self, event):
-        self.local = self.text.index(tk.INSERT)
-        #self.line = local[0]
-        #self.col = local[1]
 
     def setup_shortcuts(self):
         self.root.bind('<Control-s>', lambda event: self.cb_menu_save())
@@ -92,11 +87,6 @@ class Tela():
         self.root.bind('<Control-r>', lambda event: self.cb_menu_compile())
         self.root.bind('<Control-c>', lambda event: "<<Copy>>")
         self.root.bind('<Control-v>', lambda event: "<<Paste>>")
-
-    def cb_on_change(self, event):
-        if self.text.linha_erro != -1:
-            self.text.tag_remove('erro','1.0', 'end')
-            self.text.linha_erro = -1
 
     def cb_menu_compile(self):
         # Save file
@@ -118,7 +108,7 @@ class Tela():
         _objfile = None
         try:
             if self.text.linha_erro != -1:
-                self.text.tag_remove('erro', '1.0', 'end')
+                #self.text.tag_remove('erro', '1.0', 'end')
                 self.text.linha_erro = -1
             _objfile = _compiler.run()
             self.console_log("Sucesso!")
@@ -163,7 +153,7 @@ class Tela():
         self.text.delete("1.0", tk.END)
 
         # Write new program
-        self.text.insert(tk.INSERT, _file.read())
+        self.text.insert(tk.INSERT, _file.read().rstrip())
 
         # Close file
         self.file_manager.close_file()
