@@ -36,6 +36,8 @@ class Tela():
         self.console_frame = Frame(self.root)
         self.console_frame.pack(fill="both", pady=5)
 
+        self.text.bind("<KeyRelease>", self.keyRelease)
+        self.text.bind("<Button-1>", self.keyRelease)
         self.text.bind_all('<<Modified>>', self.cb_on_text_update)   
         self.text.tag_configure("erro", background="coral1")
         #Create scrollbar
@@ -73,12 +75,19 @@ class Tela():
         self.compilador_menu.add_command(label="Compilar", command=self.cb_menu_compile)
 
         #Add index_bar - Linha/Coluna
-        
-        self.index_bar = Label(self.root, text='Ln ' + str(0) + ' | Col ' + str(0), anchor=E)
+        self.index_variable = StringVar()
+        self.index_bar = Label(self.root,  textvariable=self.index_variable, anchor=E)
         self.index_bar.pack(fill=X, side=BOTTOM, ipady=5)
+        self.keyRelease(None)
 
         self.setup_shortcuts()
         self.root.mainloop()
+
+    def keyRelease(self, event):
+        position = self.text.index(tk.CURRENT).split(".")
+        self.index_variable.set('Ln ' + position[0] + ' | Col ' + str(int(position[1]) + 1))
+        print(self.text.index(tk.CURRENT))
+        
 
     def setup_shortcuts(self):
         self.root.bind('<Control-s>', lambda event: self.cb_menu_save())
@@ -139,6 +148,8 @@ class Tela():
 
         self.update_title('New', True)
 
+        self.keyRelease(None)
+
     def cb_menu_open(self):
         if self.file_manager.is_edited:
             # TODO Show a warning saying will lose current file
@@ -160,6 +171,8 @@ class Tela():
 
         # Update window title
         self.update_title(self.file_manager.working_filename, self.file_manager.is_edited)
+
+        self.keyRelease(None)
 
     def cb_menu_save(self):
         if self.file_manager.is_file_named():
