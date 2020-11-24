@@ -128,6 +128,8 @@ class Tela():
             self.text.linha_erro = e.line
             #Text(text_ide, backgrount=('red').grid(line=e.line))
             #print(e)
+        except Exception as e:
+            self.console_log("Erro inesperado:" + str(e))
 
         if _objfile is not None:
             if self._subp is not None:

@@ -34,22 +34,10 @@ class InvalidConditionalException(SemanticsException):
         super().__init__(program_name, line, col, msg=self.message)
 
 class DuplicatedSymbolException(SemanticsException):
-    def __init__(self, program_name, line, col, symbol, stype='symbol'):
+    def __init__(self, program_name, line, col, symbol, first_line, first_col, stype='symbol'):
         self.symbol = symbol
-        self.message = "error: found duplicated {}: {}".format(stype, symbol)
+        self.message = "error: found duplicated {} '{}' - first declared at {}:{}".format(stype, symbol, first_line, first_col)
         super().__init__(program_name, line, col, msg=self.message)
-
-class DuplicatedVariableException(DuplicatedSymbolException):
-    def __init__(self, program_name, line, col, symbol):
-        super().__init__(program_name, line, col, symbol, stype='variable')
-
-class DuplicatedProcedureException(DuplicatedSymbolException):
-    def __init__(self, program_name, line, col, symbol):
-        super().__init__(program_name, line, col, symbol, stype='procedure')
-
-class DuplicatedFunctionException(DuplicatedSymbolException):
-    def __init__(self, program_name, line, col, symbol):
-        super().__init__(program_name, line, col, symbol, stype='function')
 
 class UndeclaredSymbolException(SemanticsException):
     def __init__(self, program_name, line, col, symbol, stype='symbol'):

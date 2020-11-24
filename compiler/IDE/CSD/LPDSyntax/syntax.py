@@ -83,6 +83,26 @@ class Syntax:
     def getObjFile(self):
         return self._objfile
 
+    def symbol_table_get(self, lexeme, search, type='symbol'):
+        _index = search(lexeme)
+        if _index is None:
+            _aux = self.symbol_table.pesquisa_tabela(lexeme)
+            if _aux is None:
+                raise semantics_exceptions.UndeclaredSymbolException(
+                    self.program_name,
+                    self.current_symbol['line'],
+                    self.current_symbol['col'],
+                    self.current_symbol['lexeme'])
+            else:
+                raise semantics_exceptions.UnexpectedTypeException(
+                    self.program_name,
+                    self.current_symbol['line'],
+                    self.current_symbol['col'],
+                    self.current_symbol['lexeme'],
+                    type,
+                    self.symbol_table.get(_aux).getType())
+        return _index
+
     def run(self):
         self.call(self.lpd_analisa_programa)
         self.log("Done!")
@@ -94,7 +114,7 @@ class Syntax:
         self.mem_manager.add_to_current(1) # Return value for functions
         self.read_and_assert_is('sprograma')
         self.read_and_assert_is('sidentificador')
-        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROG, None)
+        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROG, None, self.current_symbol)
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
         self.assert_ctype_is('sponto')
@@ -132,7 +152,7 @@ class Syntax:
         while (True):
             self.assert_ctype_is('sidentificador')
             self.tabela_pesquisa_duplicvar()
-            self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_VAR, None)
+            self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_VAR, None, self.current_symbol)
             _count += 1
             self.get_next_symbol()
             self.assert_ctype_in(['svírgula', 'sdoispontos'])
@@ -193,8 +213,8 @@ class Syntax:
     def lpd_analisa_leia(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        self.tabela_pesquisa_declvar()
-        _index = self.symbol_table.pesquisa_tabela(self.get_clexem())
+        # self.tabela_pesquisa_declvar()
+        _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var, symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
         self.code_generator.gera_RD()
@@ -204,13 +224,13 @@ class Syntax:
     def lpd_analisa_escreva(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        if self.symbol_table.pesquisa_declvarfunc(self.get_clexem()) == None: # TODO é permitido escreva(funcao)?
-            raise semantics_exceptions.UndeclaredSymbolException(
-                self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'],
-                self.current_symbol['lexeme'])
-        _index = self.symbol_table.pesquisa_tabela(self.get_clexem())
+        # if self.symbol_table.pesquisa_declvarfunc(self.get_clexem()) == None: # TODO é permitido escreva(funcao)?
+        #     raise semantics_exceptions.UndeclaredSymbolException(
+        #         self.program_name,
+        #         self.current_symbol['line'],
+        #         self.current_symbol['col'],
+        #         self.current_symbol['lexeme'])
+        _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var, symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
         self.code_generator.gera_LDV(_rot)
@@ -272,12 +292,13 @@ class Syntax:
     def lpd_analisa_declaracao_procedimento(self):
         self.read_and_assert_is('sidentificador')
         self.symbol_table.inLvl()
-        self.tabela_pesquisa_declproc()
+        #self.tabela_pesquisa_declproc()
+        self.pesquisa_ja_existe()
         _aux_rot1 = self.get_new_label()
         _aux_rot2 = self.get_new_label()
         self.code_generator.gera_JMP(_aux_rot2)
         self.code_generator.gera_NULL(_aux_rot1)
-        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROC, _aux_rot1)
+        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_PROC, _aux_rot1, self.current_symbol)
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
         self.code_generator.gera_RETURN()
@@ -288,12 +309,13 @@ class Syntax:
         self.read_and_assert_is('sidentificador')
         _aux_symbol = self.current_symbol
         self.symbol_table.inLvl()
-        self.tabela_pesquisa_declfunc()
+        #self.tabela_pesquisa_declfunc()
+        self.pesquisa_ja_existe()
         _aux_rot1 = self.get_new_label()
         _aux_rot2 = self.get_new_label()
         self.code_generator.gera_JMP(_aux_rot2)
         self.code_generator.gera_NULL(_aux_rot1)
-        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_FUNC, _aux_rot1)
+        self.symbol_table.insert(self.get_clexem(), symbol_table.TYPE_FUNC, _aux_rot1, self.current_symbol)
         self.return_mapper.push(self.get_clexem())
         self.read_and_assert_is('sdoispontos')
         self.get_next_symbol()
@@ -340,7 +362,8 @@ class Syntax:
 
     def lpd_analisa_fator(self):
         if self.get_ctype() == 'sidentificador':
-            _index = self.symbol_table.pesquisa_tabela(self.get_clexem())
+            _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var_ou_func, 
+                "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
             _symbol = self.symbol_table.get(_index)
             _type = _symbol.getRetType()
             self.expressionator.insertOperand(self.current_symbol, _type)
@@ -370,13 +393,8 @@ class Syntax:
 
     def lpd_analisa_atribuicao(self):
         _aux_symbol = self.previous_symbol
-        _index = self.symbol_table.pesquisa_tabela(_aux_symbol['lexeme'])
-        if _index == None:
-            raise semantics_exceptions.UndeclaredSymbolException(
-                self.program_name,
-                _aux_symbol['line'],
-                _aux_symbol['col'],
-                _aux_symbol['lexeme'])
+        _index = self.symbol_table_get(_aux_symbol['lexeme'], self.symbol_table.pesquisa_existe_var_ou_func, 
+            "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
         _expectedReturnType = self.symbol_table.get(_index).getRetType()
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
@@ -397,22 +415,7 @@ class Syntax:
 
     def lpd_analisa_chprocedimento(self):
         _aux_symbol = self.previous_symbol
-        _index_aux = self.symbol_table.pesquisa_tabela(_aux_symbol['lexeme'])
-        if _index_aux == None:
-            raise semantics_exceptions.UndeclaredSymbolException(
-                self.program_name,
-                _aux_symbol['line'],
-                _aux_symbol['col'],
-                _aux_symbol['lexeme'])
-        _index = self.symbol_table.pesquisa_existeproc(_aux_symbol['lexeme'])
-        if _index == None:
-            raise semantics_exceptions.UnexpectedTypeException(
-                self.program_name,
-                _aux_symbol['line'],
-                _aux_symbol['col'],
-                _aux_symbol['lexeme'],
-                symbol_table.TYPE_PROC,
-                self.symbol_table.get(_index_aux).getType())
+        _index = self.symbol_table_get(_aux_symbol['lexeme'], self.symbol_table.pesquisa_existe_proc, symbol_table.TYPE_PROC)
         _rot = self.symbol_table.get(_index).getRotule()
         self.code_generator.gera_CALL(_rot)
 
@@ -420,37 +423,54 @@ class Syntax:
         self.assert_ctype_is('sidentificador')
         self.get_next_symbol()
 
+    def pesquisa_ja_existe(self):
+        _idx = self.symbol_table.pesquisa_tabela(self.get_clexem())
+        if _idx != None:
+            tok = self.symbol_table.get(_idx).getToken()
+            raise semantics_exceptions.DuplicatedSymbolException(
+                self.program_name,
+                self.current_symbol['line'],
+                self.current_symbol['col'],
+                self.current_symbol['lexeme'],
+                tok['line'] + 1,
+                tok['col'] + 1)
+
     def tabela_pesquisa_duplicvar(self):            
-        if self.symbol_table.pesquisa_duplicvar(self.get_clexem()) != None:
-            raise semantics_exceptions.DuplicatedVariableException(
+        _idx = self.symbol_table.pesquisa_existe_var_nivel(self.get_clexem())
+        if _idx != None:
+            tok = self.symbol_table.get(_idx).getToken()
+            raise semantics_exceptions.DuplicatedSymbolException(
                 self.program_name,
                 self.current_symbol['line'],
                 self.current_symbol['col'],
-                self.current_symbol['lexeme'])
+                self.current_symbol['lexeme'],
+                tok['line'] + 1,
+                tok['col'] + 1,
+                symbol_table.TYPE_VAR)
 
-    def tabela_pesquisa_declvar(self):
-        if self.symbol_table.pesquisa_declvar(self.get_clexem()) == None:
-            raise semantics_exceptions.UndeclaredSymbolException(
-                self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'],
-                self.current_symbol['lexeme'])
+    # def tabela_pesquisa_declvar(self):
+    #     if self.symbol_table.pesquisa_declvar(self.get_clexem()) == None:
+    #         raise semantics_exceptions.UndeclaredSymbolException(
+    #             self.program_name,
+    #             self.current_symbol['line'],
+    #             self.current_symbol['col'],
+    #             self.current_symbol['lexeme'])
 
-    def tabela_pesquisa_declproc(self):
-        if self.symbol_table.pesquisa_declproc(self.get_clexem()) != None:
-            raise semantics_exceptions.DuplicatedProcedureException(
-                self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'],
-                self.current_symbol['lexeme'])
+    # def tabela_pesquisa_declproc(self):
+    #     if self.symbol_table.pesquisa_tabela(self.get_clexem()) != None:
+    #         raise semantics_exceptions.DuplicatedProcedureException(
+    #             self.program_name,
+    #             self.current_symbol['line'],
+    #             self.current_symbol['col'],
+    #             self.current_symbol['lexeme'])
 
-    def tabela_pesquisa_declfunc(self):
-        if self.symbol_table.pesquisa_declfunc(self.get_clexem()) != None:
-            raise semantics_exceptions.DuplicatedFunctionException(
-                self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'],
-                self.current_symbol['lexeme'])
+    # def tabela_pesquisa_declfunc(self):
+    #     if self.symbol_table.pesquisa_declfunc(self.get_clexem()) != None:
+    #         raise semantics_exceptions.DuplicatedFunctionException(
+    #             self.program_name,
+    #             self.current_symbol['line'],
+    #             self.current_symbol['col'],
+    #             self.current_symbol['lexeme'])
 
     def validate_conditional(self, symbol=None):
         symbol = symbol or self.current_symbol
