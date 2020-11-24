@@ -143,6 +143,12 @@ class Expressionator:
                 else:
                     raise Exception("Oops: {}".format(symbol))
         else:
+            if item.isUnary:
+                if token['type'] == "smenos":
+                    self._code_generator.gera_INV()
+                    return
+                elif token['type'] == "smais":
+                    return
             self._code_generator.gera_auto(token['type'])
 
     def finish(self):

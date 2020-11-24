@@ -83,22 +83,23 @@ class Syntax:
     def getObjFile(self):
         return self._objfile
 
-    def symbol_table_get(self, lexeme, search, type='symbol'):
-        _index = search(lexeme)
+    def symbol_table_get(self, search, token=None, type='symbol'):
+        token = token or self.current_symbol
+        _index = search(token['lexeme'])
         if _index is None:
-            _aux = self.symbol_table.pesquisa_tabela(lexeme)
+            _aux = self.symbol_table.pesquisa_tabela(token['lexeme'])
             if _aux is None:
                 raise semantics_exceptions.UndeclaredSymbolException(
                     self.program_name,
-                    self.current_symbol['line'],
-                    self.current_symbol['col'],
-                    self.current_symbol['lexeme'])
+                    token['line'],
+                    token['col'],
+                    token['lexeme'])
             else:
                 raise semantics_exceptions.UnexpectedTypeException(
                     self.program_name,
-                    self.current_symbol['line'],
-                    self.current_symbol['col'],
-                    self.current_symbol['lexeme'],
+                    token['line'],
+                    token['col'],
+                    token['lexeme'],
                     type,
                     self.symbol_table.get(_aux).getType())
         return _index
@@ -214,7 +215,7 @@ class Syntax:
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
         # self.tabela_pesquisa_declvar()
-        _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var, symbol_table.TYPE_VAR)
+        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
         self.code_generator.gera_RD()
@@ -230,7 +231,7 @@ class Syntax:
         #         self.current_symbol['line'],
         #         self.current_symbol['col'],
         #         self.current_symbol['lexeme'])
-        _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var, symbol_table.TYPE_VAR)
+        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
         self.code_generator.gera_LDV(_rot)
@@ -362,8 +363,8 @@ class Syntax:
 
     def lpd_analisa_fator(self):
         if self.get_ctype() == 'sidentificador':
-            _index = self.symbol_table_get(self.get_clexem(), self.symbol_table.pesquisa_existe_var_ou_func, 
-                "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
+            _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var_ou_func, 
+                type="{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
             _symbol = self.symbol_table.get(_index)
             _type = _symbol.getRetType()
             self.expressionator.insertOperand(self.current_symbol, _type)
@@ -393,8 +394,8 @@ class Syntax:
 
     def lpd_analisa_atribuicao(self):
         _aux_symbol = self.previous_symbol
-        _index = self.symbol_table_get(_aux_symbol['lexeme'], self.symbol_table.pesquisa_existe_var_ou_func, 
-            "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
+        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var_ou_func, self.previous_symbol, 
+            type="{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
         _expectedReturnType = self.symbol_table.get(_index).getRetType()
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
@@ -415,7 +416,7 @@ class Syntax:
 
     def lpd_analisa_chprocedimento(self):
         _aux_symbol = self.previous_symbol
-        _index = self.symbol_table_get(_aux_symbol['lexeme'], self.symbol_table.pesquisa_existe_proc, symbol_table.TYPE_PROC)
+        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_proc, self.previous_symbol, type=symbol_table.TYPE_PROC)
         _rot = self.symbol_table.get(_index).getRotule()
         self.code_generator.gera_CALL(_rot)
 
