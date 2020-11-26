@@ -256,10 +256,11 @@ class Syntax:
         self.code_generator.gera_NULL(label=_aux_rot2)
 
     def lpd_analisa_se(self):
+        _aux = self.current_symbol
         _aux_rot1 = self.get_new_label()
         self.get_next_symbol()
         self.call(self.lpd_analisa_expressao_primer)
-        self.validate_conditional()
+        self.validate_conditional(symbol=_aux)
         self.code_generator.gera_JMPF(_aux_rot1)
         self.assert_ctype_is('sentao')
         self.return_mapper.in_if()
