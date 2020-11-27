@@ -40,20 +40,11 @@ class Tela():
         self.text.bind("<Button-1>", self.keyRelease)
         self.text.bind_all('<<Modified>>', self.cb_on_text_update)   
         self.text.tag_configure("erro", background="coral1")
-        #Create scrollbar
-        #text_scroll = Scrollbar(main_frame)
-        #text_scroll.pack(side=RIGHT, fill=Y)
-
-        #Add caixa de texto e set scrollbar
-        #text_ide = Text(main_frame, width=92, height=25, undo = True, yscrollcommand=text_scroll.set)
-        #text_ide.pack(fill="both")
 
         self.text_console = Text(self.console_frame, width=92, height=10, undo = True)
         self.text_console.pack(fill="both")
 
         self.text_console.config(state="disabled")
-        #Config scrollbar
-        #text_scroll.config(command=text_ide.yview)
 
         #Add Menu
         self.my_menu = Menu(self.root)
@@ -117,7 +108,6 @@ class Tela():
         _objfile = None
         try:
             if self.text.linha_erro != -1:
-                #self.text.tag_remove('erro', '1.0', 'end')
                 self.text.linha_erro = -1
             _objfile = _compiler.run()
             self.console_log("Sucesso!")
@@ -126,8 +116,6 @@ class Tela():
             self.console_log(str(e))
             self.text.tag_add('erro', str(e.line+1) + '.0', str(e.line + 2) + '.0')
             self.text.linha_erro = e.line
-            #Text(text_ide, backgrount=('red').grid(line=e.line))
-            #print(e)
         except Exception as e:
             self.console_log("Erro inesperado:" + str(e))
 
@@ -135,8 +123,6 @@ class Tela():
             if self._subp is not None:
                 self._subp.kill()
             self._subp = subprocess.Popen(["py", VM_APP_DIRECTORY, _objfile], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("Opened subprocess: " + str(self._subp))
-            #print(_p.communicate())
 
     def cb_menu_new(self):
         if self.file_manager.is_edited:
@@ -218,9 +204,6 @@ class Tela():
 
         # Update window title
         self.update_title(self.file_manager.working_filename, is_edited=True)
-
-        # Reset event
-        # self.text_ide.bind_all('<<Modified>>', self.cb_on_text_update)
 
     def do_console(self, action):
         self.text_console.config(state="normal")

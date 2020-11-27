@@ -67,7 +67,6 @@ class IndexedTextWrapper(tk.Frame):
         self.text = IndexedText(self)
         self.vsb = tk.Scrollbar(main, orient="vertical", command=self.text.yview)
         self.text.configure(yscrollcommand=self.vsb.set)
-        #self.text.tag_configure("bigfont", font=("Helvetica", "24", "bold"))
         self.linenumbers = TextLineNumbers(self, width=50)
         self.linenumbers.attach(self.text)
 

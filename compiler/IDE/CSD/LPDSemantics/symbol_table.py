@@ -132,19 +132,6 @@ class SymbolTable:
     def pesquisa_existe_var_nivel(self, lexema, nivel=None):
         nivel = nivel or self._lvl
         return self._find(lambda symb: symb.isLexem(lexema) and symb.getLevel() == nivel)
-        # return self._findCurrent(lambda symb: symb.isLexem(lexema) and symb.getLevel() == nivel)
-
-    # def pesquisa_declvar(self, lexema):
-    #     return self._find(lambda symb: symb.isLexem(lexema))
-
-    # def pesquisa_declvarfunc(self, lexema):
-    #     return self._find(lambda symb: (symb.isVar() or symb.isFunc()) and symb.isLexem(lexema))
-
-    # def pesquisa_declproc(self, lexema):
-    #     return self._find(lambda symb: symb.isLexem(lexema))
-
-    # def pesquisa_declfunc(self, lexema):
-    #     return self._find(lambda symb: symb.isLexem(lexema))
 
     def coloca_tipo_tabela(self, tipo):
         self.log("Setting type {}".format(tipo))

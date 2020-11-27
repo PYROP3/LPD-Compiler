@@ -162,7 +162,6 @@ class MealyLexer:
                 _state)
 
         return
-        #raise StopIteration()
 
     def createToken(self, _type):
         return {

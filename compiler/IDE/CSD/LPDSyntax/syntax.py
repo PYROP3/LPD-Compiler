@@ -214,7 +214,6 @@ class Syntax:
     def lpd_analisa_leia(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        # self.tabela_pesquisa_declvar()
         _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
@@ -225,12 +224,6 @@ class Syntax:
     def lpd_analisa_escreva(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        # if self.symbol_table.pesquisa_declvarfunc(self.get_clexem()) == None: # TODO é permitido escreva(funcao)?
-        #     raise semantics_exceptions.UndeclaredSymbolException(
-        #         self.program_name,
-        #         self.current_symbol['line'],
-        #         self.current_symbol['col'],
-        #         self.current_symbol['lexeme'])
         _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
         _rot = self.symbol_table.get(_index).getRotule()
         self.read_and_assert_is('sfecha_parênteses')
@@ -294,7 +287,6 @@ class Syntax:
     def lpd_analisa_declaracao_procedimento(self):
         self.read_and_assert_is('sidentificador')
         self.symbol_table.inLvl()
-        #self.tabela_pesquisa_declproc()
         self.pesquisa_ja_existe()
         _aux_rot1 = self.get_new_label()
         _aux_rot2 = self.get_new_label()
@@ -311,7 +303,6 @@ class Syntax:
         self.read_and_assert_is('sidentificador')
         _aux_symbol = self.current_symbol
         self.symbol_table.inLvl()
-        #self.tabela_pesquisa_declfunc()
         self.pesquisa_ja_existe()
         _aux_rot1 = self.get_new_label()
         _aux_rot2 = self.get_new_label()
@@ -330,7 +321,6 @@ class Syntax:
                 self.program_name,
                 _aux_symbol['line'],
                 _aux_symbol['col'])
-        # self.code_generator.gera_RETURN()
         self.code_generator.gera_NULL(_aux_rot2)
         self.symbol_table.outLvl()
 
@@ -450,30 +440,6 @@ class Syntax:
                 tok['col'] + 1,
                 symbol_table.TYPE_VAR)
 
-    # def tabela_pesquisa_declvar(self):
-    #     if self.symbol_table.pesquisa_declvar(self.get_clexem()) == None:
-    #         raise semantics_exceptions.UndeclaredSymbolException(
-    #             self.program_name,
-    #             self.current_symbol['line'],
-    #             self.current_symbol['col'],
-    #             self.current_symbol['lexeme'])
-
-    # def tabela_pesquisa_declproc(self):
-    #     if self.symbol_table.pesquisa_tabela(self.get_clexem()) != None:
-    #         raise semantics_exceptions.DuplicatedProcedureException(
-    #             self.program_name,
-    #             self.current_symbol['line'],
-    #             self.current_symbol['col'],
-    #             self.current_symbol['lexeme'])
-
-    # def tabela_pesquisa_declfunc(self):
-    #     if self.symbol_table.pesquisa_declfunc(self.get_clexem()) != None:
-    #         raise semantics_exceptions.DuplicatedFunctionException(
-    #             self.program_name,
-    #             self.current_symbol['line'],
-    #             self.current_symbol['col'],
-    #             self.current_symbol['lexeme'])
-
     def validate_conditional(self, symbol=None):
         symbol = symbol or self.current_symbol
         _ret = self.expressionator.validate()
@@ -517,14 +483,6 @@ class Syntax:
             self.current_symbol['line'], 
             self.current_symbol['col'], 
             but)
-
-    # def validate_symbol_table(self, symbol_table):
-    #     if len(symbol_table) == 0:
-    #         raise Exception("Invalid length for symbol table")
-    #     _aux = [lexerhelper.special_tokens[key] for key in lexerhelper.special_tokens] + ['sidentificador', 'snúmero']
-    #     for symbol in symbol_table:
-    #         if symbol['type'] not in _aux:
-    #             raise Exception("Unknown type {}".format(symbol['type']))
 
     def log(self, line, end='\n'):
         if (self.debug):

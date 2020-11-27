@@ -4,13 +4,6 @@ class LexerException(lpd_exceptions.LPDException):
     def __init__(self, program_name, line, col, msg):
         super().__init__(program_name, line, col, msg=msg)
 
-    # def getCause(self, ptr='^', trail='~'):
-    #     aux = list(re.sub('[^\t]', ' ', self.program_line))
-    #     aux[self.col] = ptr
-    #     aux[self.col+1:self.col+1+self.length] = [trail] * (self.length - 1)
-    #     aux = ''.join(aux)
-    #     return self.program_line + '\n' + aux
-
 class InvalidSymbolException(LexerException):
     def __init__(self, program_name, program_line, line, col, symbol):
         self.symbol = symbol

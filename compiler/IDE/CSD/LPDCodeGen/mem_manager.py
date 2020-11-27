@@ -21,7 +21,6 @@ class StackManager:
         self._skip = False
 
     def add_to_current(self, n):
-        # assert len(self.stack) > 0, "No current context"
         if len(self.stack) == 0:
             self.stack.append([])
             self._skip = True
