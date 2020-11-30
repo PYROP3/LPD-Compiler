@@ -11,7 +11,7 @@ import subprocess
 import os.path
 
 VM_APP_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "vm", "emulador.py")
-print("Emulador: " + VM_APP_DIRECTORY)
+#print("Emulador: " + VM_APP_DIRECTORY)
 
 class Tela():
     def create_ui(self):
@@ -77,7 +77,7 @@ class Tela():
     def keyRelease(self, event):
         position = self.text.index(tk.CURRENT).split(".")
         self.index_variable.set('Ln ' + position[0] + ' | Col ' + str(int(position[1]) + 1))
-        print(self.text.index(tk.CURRENT))
+        #print(self.text.index(tk.CURRENT))
         
 
     def setup_shortcuts(self):
@@ -166,7 +166,7 @@ class Tela():
         if self.file_manager.is_file_named():
             self.file_manager.save_to_file(self.text.get("1.0", tk.END))
         else:
-            file_path = filedialog.askopenfilename()
+            file_path = filedialog.asksaveasfilename()
             if (file_path == '' or file_path is None):
                 return False
             self.file_manager.open_file_write(filename=file_path)
@@ -181,7 +181,7 @@ class Tela():
         return True
 
     def cb_menu_saveas(self):
-        file_path = filedialog.askopenfilename()
+        file_path = filedialog.asksaveasfilename()
         if (file_path == '' or file_path is None):
             return False
         self.file_manager.open_file_write(filename=file_path)

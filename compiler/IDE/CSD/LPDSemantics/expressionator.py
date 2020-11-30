@@ -91,6 +91,10 @@ class Expressionator:
         if self._debug:
             print("[Expressionator]: " + msg, end=end)
 
+    def simplifyPostfix(self, postfix=None):
+        _postfix = postfix or self._postfix
+        return ",".join([_elem.item['lexeme'] for _elem in _postfix])
+
     def exhibit(self):
         self.log("OP stack = [{}]".format(self._opStack))
         self.log("Postfix  = [{}]".format(self._postfix))
@@ -115,7 +119,7 @@ class Expressionator:
         if precedence is None:
             precedence = getPrecedence(item['type'], isUnary=isUnary)
         self.log("Inserting operation {} - precedence {} (isUnary = {})".format(item, precedence, isUnary))
-        while len(self._opStack) > 0 and self._opStack[-1].precedence >= precedence:
+        while len(self._opStack) > 0 and self._opStack[-1].precedence >= precedence and not isUnary:
             _a = self._opStack.pop()
             self.__postfix_add(PostfixDatagram(_a.op, False, _a.isUnary))
         self._opStack.append(StackDatagram(item, precedence, isUnary))
@@ -165,7 +169,7 @@ class Expressionator:
             self.log("Warning: validating before finished, finishing automatically...")
             self.finish()
         _aux = self._postfix[:]
-        self.log("Starting validation for postfix={}".format(_aux))
+        self.log("Starting validation for postfix={}".format(self.simplifyPostfix(_aux)))
         atual = 0
         while len(_aux) > 1:
             while _aux[atual].isOperand:

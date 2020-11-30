@@ -24,10 +24,10 @@ class Syntax:
         self._symbols = self.lexer.tokenGenerator()
         self.symbol_table = symbol_table.SymbolTable(debug=debug)
         self.expressionator = None
-        self.return_mapper = return_mapper.ReturnMapperWrapper()
+        self.return_mapper = return_mapper.ReturnMapperWrapper(debug=debug)
         self.code_generator = code_generator.LPDGenerator(debug=debug)
         self._labels = label_printer.LabelPrinter(debug=debug).label()
-        self.mem_manager = mem_manager.StackManager(self.code_generator)
+        self.mem_manager = mem_manager.StackManager(self.code_generator, debug=debug)
         self._objfile = None
 
     def get_new_label(self):
@@ -224,10 +224,24 @@ class Syntax:
     def lpd_analisa_escreva(self):
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
-        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
-        _rot = self.symbol_table.get(_index).getRotule()
+        _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var_ou_func, self.current_symbol, 
+            type="{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
+        _symb = self.symbol_table.get(_index)
         self.read_and_assert_is('sfecha_parênteses')
-        self.code_generator.gera_LDV(_rot)
+        _rot = _symb.getRotule()
+        if _symb.isVar():
+            self.code_generator.gera_LDV(_rot)
+        elif _symb.isFunc():
+            self.code_generator.gera_CALL(_rot)
+            self.code_generator.gera_LDV(MEM_RETURN_POS)
+        else:
+            print("Unexpected value")
+            raise syntax_exceptions.UnexpectedTypeException(
+                self.program_name, 
+                self.previous_symbol['line'], 
+                self.previous_symbol['col'], 
+                "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC), 
+                _symb.getType())
         self.code_generator.gera_PRN()
         self.get_next_symbol()
 

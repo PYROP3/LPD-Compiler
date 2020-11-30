@@ -2,7 +2,7 @@ COND_IF = 0
 COND_ELSE = 1
 
 class ReturnMapperWrapper:
-    def __init__(self, debug=True):
+    def __init__(self, debug=False):
         self.returnMappers = []
         self.functionNames = []
         self._debug = debug
