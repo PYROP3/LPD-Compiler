@@ -104,6 +104,20 @@ class Syntax:
                     self.symbol_table.get(_aux).getType())
         return _index
 
+    def assert_integer_variable(self, var):
+        if not (var.isVar() and var.getRetType() == 'inteiro'):
+            raise semantics_exceptions.InvalidVariableTypeException(
+                self.program_name,
+                self.current_symbol['line'],
+                self.current_symbol['col'])
+
+    def assert_integer_return(self, var):
+        if not (var.getRetType() == 'inteiro'):
+            raise semantics_exceptions.InvalidVariableTypeException(
+                self.program_name,
+                self.current_symbol['line'],
+                self.current_symbol['col'])
+
     def run(self):
         self.call(self.lpd_analisa_programa)
         self.log("Done!")
@@ -215,7 +229,9 @@ class Syntax:
         self.read_and_assert_is('sabre_parênteses')
         self.read_and_assert_is('sidentificador')
         _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var, type=symbol_table.TYPE_VAR)
-        _rot = self.symbol_table.get(_index).getRotule()
+        _symb = self.symbol_table.get(_index)
+        self.assert_integer_variable(_symb)
+        _rot = _symb.getRotule()
         self.read_and_assert_is('sfecha_parênteses')
         self.code_generator.gera_RD()
         self.code_generator.gera_STR(_rot)
@@ -227,8 +243,8 @@ class Syntax:
         _index = self.symbol_table_get(self.symbol_table.pesquisa_existe_var_ou_func, self.current_symbol, 
             type="{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC))
         _symb = self.symbol_table.get(_index)
-        self.read_and_assert_is('sfecha_parênteses')
         _rot = _symb.getRotule()
+        self.assert_integer_return(_symb)
         if _symb.isVar():
             self.code_generator.gera_LDV(_rot)
         elif _symb.isFunc():
@@ -243,6 +259,7 @@ class Syntax:
                 "{} or {}".format(symbol_table.TYPE_VAR, symbol_table.TYPE_FUNC), 
                 _symb.getType())
         self.code_generator.gera_PRN()
+        self.read_and_assert_is('sfecha_parênteses')
         self.get_next_symbol()
 
     def lpd_analisa_enquanto(self):
