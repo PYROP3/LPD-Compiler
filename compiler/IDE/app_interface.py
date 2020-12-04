@@ -102,7 +102,7 @@ class Tela():
             self._subp = None
 
         # Create compiler object
-        _compiler = compiler.Compiler(self.file_manager.working_filename, debug=True)
+        _compiler = compiler.Compiler(self.file_manager.working_filename, debug=False)
 
         # Execute
         _objfile = None
@@ -116,6 +116,8 @@ class Tela():
             self.console_log(str(e))
             self.text.tag_add('erro', str(e.line+1) + '.0', str(e.line + 2) + '.0')
             self.text.linha_erro = e.line
+            self.text.see(str(e.line) + '.0')
+            self.frame_text.linenumbers.redraw()
         except Exception as e:
             self.console_log("Erro inesperado:" + str(e))
 
