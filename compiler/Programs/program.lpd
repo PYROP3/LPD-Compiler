@@ -1,82 +1,42 @@
-programa test;
-var v, valor: inteiro;
-    i,max, juro: inteiro;
-funcao teste: inteiro;
-var v: inteiro;
+programa testefinal; {ERRO procedimento duplicado}
+
+var opcao,x,y:inteiro;
+
+
+procedimento numeros;
+var x,y,total: inteiro;
+
+procedimento numeros;         {ERRO procedimento duplicado}
+var media: inteiro;
 inicio
-	se verdadeiro
-	entao
-		teste:=3 * (valor * v) + 4
-	senao
-		teste:=4
+  media:=(x+y)div 2;
+  escreva(media)
 fim;
-procedimento proc;
-var v, b: booleano;
+
 inicio
-	valor := teste;
-	se v e verdadeiro
-	entao
-		valor:=5
-	senao
-		v:=falso
+  leia(x);
+  leia(y);
+  total:= x+y;
+  escreva(total);  {soma dos numeros lidos}
+  media            {Calcula a media aritmetica dos numeros lidos}
 fim;
-início
-    enquanto v < 5 + 4
-    faca
-    início
-        {leia o valor inicial}
-        leia(v);
-        {leia a taxa de juros }
-        leia(juro);
-        { Leia o periodo }
-        leia(max);
-        valor:= 1; /* comentário c-like */
-        i:= 1;
-        enquanto i<=max { (1+juro) elevado a n }
-        faca início
-            valor:= valor*(1+juro);
-            i:= i+1; /* começa o comentário de várias linhas
-            tem várias linhas
-            acaba aqui*/fim;
-        escreva(valor);
-    fim
-fim.
-{123}
 
+procedimento p;               {calcula fatorial de um numero lido}
+var z: inteiro;
+inicio
+  z:= x; x:=x-1;
+  se  z>1 entao p  {recursivo} 
+  senao  y:=1;
+  y:=y*z               
+fim { p };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+inicio
+  leia(opcao);
+  se opcao = 1
+  entao numeros
+  senao inicio
+         leia(x);
+         p;
+         escreva(y)
+       fim
+fim.       

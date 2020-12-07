@@ -65,6 +65,18 @@ class Tela():
         self.my_menu.add_cascade(label="Compilador", menu=self.compilador_menu)
         self.compilador_menu.add_command(label="Compilar", command=self.cb_menu_compile)
 
+        #Add Menu Opções
+        self.opcoes_menu = Menu(self.my_menu, tearoff=False)
+        self.my_menu.add_cascade(label="Opções", menu=self.opcoes_menu)
+        self.var_ex_unreachable_code = tk.BooleanVar()
+        self.var_ex_unreachable_code.set(True)
+        self.opcoes_menu.add_checkbutton(label="Lançar exceção código inalcançável", variable=self.var_ex_unreachable_code)
+        self.var_ex_nondeterministic_function = tk.BooleanVar()
+        self.var_ex_nondeterministic_function.set(True)
+        self.opcoes_menu.add_checkbutton(label="Lançar exceção função não-determinística", variable=self.var_ex_nondeterministic_function)
+        self.var_accept_accents = tk.BooleanVar()
+        self.opcoes_menu.add_checkbutton(label="Aceitar acentuação", variable=self.var_accept_accents)
+
         #Add index_bar - Linha/Coluna
         self.index_variable = StringVar()
         self.index_bar = Label(self.root,  textvariable=self.index_variable, anchor=E)
@@ -101,8 +113,17 @@ class Tela():
             self._subp.kill()
             self._subp = None
 
+        # Get ignored exceptions
+        _rules = []
+        if not self.var_ex_unreachable_code.get():
+            _rules.append("UnreachableCodeException")
+        if not self.var_ex_nondeterministic_function.get():
+            _rules.append("NonDeterministicFunctionException")
+        if self.var_accept_accents.get():
+            _rules.append("AcceptAccents")
+
         # Create compiler object
-        _compiler = compiler.Compiler(self.file_manager.working_filename, debug=False)
+        _compiler = compiler.Compiler(self.file_manager.working_filename, debug=False, rules=_rules)
 
         # Execute
         _objfile = None

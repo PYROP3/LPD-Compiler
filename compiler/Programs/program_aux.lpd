@@ -1,0 +1,13 @@
+programa teste;
+
+var a,b: inteiro;
+    x, y: booleano;
+
+inicio
+    se nao nao nao (nao nao nao falso e nao nao nao verdadeiro)
+    entao
+	a:=-(-(-1))
+    senao
+        a:=2;
+    escreva(a);
+fim.

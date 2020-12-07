@@ -14,7 +14,7 @@ FILETYPE_OBJ = "lpdo"
 MEM_RETURN_POS = 0
 
 class Syntax:
-    def __init__(self, program_name, debug=False, lexer=None):
+    def __init__(self, program_name, lexer=None, rules=[], debug=False):
         self.debug = debug
         self.current_symbol = None
         self.previous_symbol = None
@@ -29,6 +29,7 @@ class Syntax:
         self._labels = label_printer.LabelPrinter(debug=debug).label()
         self.mem_manager = mem_manager.StackManager(self.code_generator, debug=debug)
         self._objfile = None
+        self._rules = rules
 
     def get_new_label(self):
         return next(self._labels)
@@ -200,10 +201,11 @@ class Syntax:
 
     def lpd_analisa_comando_simples(self):
         if self.return_mapper.validate_command() == False:
-            raise semantics_exceptions.UnreachableCodeException(
-                self.program_name,
-                self.current_symbol['line'],
-                self.current_symbol['col'])
+            if "UnreachableCodeException" not in self._rules:
+                raise semantics_exceptions.UnreachableCodeException(
+                    self.program_name,
+                    self.current_symbol['line'],
+                    self.current_symbol['col'])
         _aux = {
                 'sidentificador': self.lpd_analisa_atrib_chprocedimento,
                 'sse': self.lpd_analisa_se,
@@ -348,10 +350,11 @@ class Syntax:
         self.read_and_assert_is('sponto_vírgula')
         self.call(self.lpd_analisa_bloco)
         if self.return_mapper.pop().validate_end() == False:
-            raise semantics_exceptions.NonDeterministicFunctionException(
-                self.program_name,
-                _aux_symbol['line'],
-                _aux_symbol['col'])
+            if "NonDeterministicFunctionException" not in self._rules:
+                raise semantics_exceptions.NonDeterministicFunctionException(
+                    self.program_name,
+                    _aux_symbol['line'],
+                    _aux_symbol['col'])
         self.code_generator.gera_NULL(_aux_rot2)
         self.symbol_table.outLvl()
 

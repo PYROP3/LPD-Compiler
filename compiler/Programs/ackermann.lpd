@@ -1,0 +1,46 @@
+programa test;
+
+var mp,np: inteiro;
+
+funcao ack: inteiro;
+
+var m,n: inteiro;
+
+inicio
+
+  m := mp;
+  n := np;
+
+  se m = 0 entao
+    ack := n+1
+  senao
+    se n = 0 entao
+    inicio
+      m := m-1;
+      n := 1;
+      mp := m;
+      np := n;
+      ack := ack
+    fim
+    senao
+    inicio
+      n := n-1;
+      mp := m;
+      np := n;
+      n := ack;
+      m := m-1;
+      mp := m;
+      np := n;
+      ack := ack
+    fim
+
+fim;
+
+inicio
+
+  leia(mp);
+  leia(np);
+
+  escreva(ack)
+
+fim.

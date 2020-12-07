@@ -1,6 +1,5 @@
 special_tokens = {
     'programa': 'sprograma',
-    'início': 'sinício',
     'inicio': 'sinício',
     'fim': 'sfim',
     'procedimento': 'sprocedimento',

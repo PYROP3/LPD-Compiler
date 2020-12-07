@@ -11,9 +11,9 @@ class InformalEndException(LPDException):
         super().__init__(program_name, line, col, msg=self.message)
 
 class Compiler:
-    def __init__(self, program_name, debug=False):
-        self.lexer = MealyLexer(program_name, debug=debug)
-        self.syntax = Syntax(program_name, lexer=self.lexer, debug=debug)
+    def __init__(self, program_name, rules=[], debug=False):
+        self.lexer = MealyLexer(program_name, rules=rules, debug=debug)
+        self.syntax = Syntax(program_name, lexer=self.lexer, rules=rules, debug=debug)
 
     def run(self, debug=False):
         try:

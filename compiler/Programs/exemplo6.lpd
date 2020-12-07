@@ -1,10 +1,17 @@
 programa exemplo6;
 	var x, y: inteiro;
 	procedimento p;
-		var z: inteiro;
+		var x, z: inteiro;
+		procedimento pa;
+			var x, z: inteiro;
+		início
+			z:= x; x:=x-1;
+			se z>1 entao p
+				senao y:=1;
+			y:=y*z
+		fim { p_interno };
 	início
 		z:= x; x:=x-1;
-		z;
 		se z>1 entao p
 			senao y:=1;
 		y:=y*z
@@ -26,32 +33,3 @@ início
 	escreva (y);
 	escreva (x)
 fim.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

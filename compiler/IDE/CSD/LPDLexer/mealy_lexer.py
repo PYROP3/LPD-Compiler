@@ -1,4 +1,5 @@
 import re
+import unidecode
 from . import lexerhelper
 from . import lexer_exceptions
 from ..Automata import mealy_machine
@@ -12,13 +13,17 @@ class MealyLexerState(mealy_machine.MealyState):
         self.exception = exception
 
 class MealyLexer:
-    def __init__(self, program_name, debug=False):
+    def __init__(self, program_name, rules=[], debug=False):
         self.program_name = program_name
+        self._rules = rules
         _f = open(self.program_name, 'r', encoding='utf-8')
         self.working_program = _f.read()
         _f.close()
         self.original_program = self.working_program.split('\n')
-        self.working_program = list(self.working_program)
+        if "AcceptAccents" in self._rules:
+            self.working_program = list(unidecode.unidecode(self.working_program))
+        else:
+            self.working_program = list(self.working_program)
         self.parsed_tokens = []
         self.debug = False
         self.state = 'normal'
@@ -31,7 +36,7 @@ class MealyLexer:
                 '{': MealyLexerState('in_bracket'),
                 '/': MealyLexerState('in_c-like_start'),
                 '0123456789': MealyLexerState('digit', reset_token=True, append_char=True),
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí': MealyLexerState('word', reset_token=True, append_char=True),
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ': MealyLexerState('word', reset_token=True, append_char=True),
                 ':': MealyLexerState('attribution', reset_token=True, append_char=True),
                 '+-*;.,()': MealyLexerState('symbol', reset_token=True, append_char=True),
                 '!<>=': MealyLexerState('rel_op', reset_token=True, append_char=True),
@@ -57,7 +62,7 @@ class MealyLexer:
                 '0123456789': MealyLexerState('digit', append_char=True)
             },
             'word': {
-                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZí_0123456789': MealyLexerState('word', append_char=True)
+                'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789': MealyLexerState('word', append_char=True)
             },
             'attribution': {
                 '=': MealyLexerState('normal', append_char=True, wrap_token=True)
